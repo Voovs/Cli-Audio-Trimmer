@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 const readline = require('readline');
-const display = require('./interface');
+const interface = require('./interface/main.js');
 
 
 // User-modifiable. Conflicts will result in unexpected execution
 const keybinds = {
     play:           "space",
-    new_selection:  "tab",
     new_start:      ",",
     new_end:        ".",
     trim_timeline:  "enter",
+    undo_trim:      "-",
     start_increase: "[",
     end_increase:   "]",
     start_decrease: "{",
@@ -29,7 +29,7 @@ var global_state = {
     is_trimmed_end:  false,
 };
 
-console.log(display.interfaceString(keybinds, global_state));
+console.log(interface.interfaceString(keybinds, global_state));
 process.exit();
 
 

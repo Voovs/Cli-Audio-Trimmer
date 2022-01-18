@@ -1,4 +1,4 @@
-# Simple Audio Trimmer v-0.0.1
+# Simple Audio Trimmer v0.0.2
 
 Trim audio from the comfort of your shell. Essentially a cli-frontend to ffmpeg.
 Helpful if you often trim down audio clips
@@ -16,8 +16,8 @@ Wait for v1.0.0 before using
 
 <!-- ❌ 🟡 ✅ -->
 
- - Help menu ❌
- - Command line arguments ❌
+ - Help menu 🟡
+ - Command line arguments 🟡
  - Interface 🟡 (see below)
  - Interactive trimming ❌
  - Marks ❌
@@ -38,10 +38,10 @@ preferences and selections
 | Keybind | Action                       |      |      Current selection      |
 |---------|------------------------------|      -------------------------------
 | <Space> | Pause/Play selection         |      |  Start time  |   End time   |
-| <Tab>   | Create new selection         |      | -------------|--------------|
-|    ,    | Choose new start             |      | 03:12:20.342 | 03:12:30.342 |
-|    .    | Choose new end               |      |      6       |      e       |
-| <Enter> | Trim timeline to selection   |      -------------------------------
+|    ,    | Choose new start             |      | -------------|--------------|
+|    .    | Choose new end               |      | 03:12:20.342 | 03:12:30.342 |
+| <Enter> | Trim timeline to selection   |      |      6       |      e       |
+|    -    | Undo timeline trim           |      -------------------------------
 |    [    | -100ms to start              |
 |    ]    | +100ms to end                |
 |    {    | +100ms to start              |
@@ -53,6 +53,6 @@ preferences and selections
                             |                                           |
  1    2         3 45        |  7   8    9  ab           c      d        |     $
  |    |         | ||        |  |   |    |  ||           |      |        |     |
-<==============================================================================>
-03:10:12.333              03:12:20.342 -> 03:12:30.342              03:40:12.333
+===============================================================================>
+00:00:00.000              03:12:20.342 -> 03:12:30.342              03:40:12.333
 ```

@@ -17,10 +17,10 @@ function interfaceString(keybinds, global_state) {
 | Keybind | Action                       |      |      Current selection      |
 |---------|------------------------------|      -------------------------------
 |${k.play}| Pause/Play selection         |      |  Start time  |   End time   |
-|${k.new_selection}| Create new selection         |      | -------------|--------------|
-|${k.new_start}| Choose new start             |      | ${t.start_time} | ${t.end_time} |
-|${k.new_end}| Choose new end               |      |      ${g.start_mark}       |      ${g.end_mark}       |
-|${k.trim_timeline}| Trim timeline to selection   |      -------------------------------
+|${k.new_start}| Choose new start             |      | -------------|--------------|
+|${k.new_end}| Choose new end               |      | ${t.start_time} | ${t.end_time} |
+|${k.trim_timeline}| Trim timeline to selection   |      |      ${g.start_mark}       |      ${g.end_mark}       |
+|${k.undo_trim}| Undo timeline trim           |      -------------------------------
 |${k.start_increase}| -100ms to start              |
 |${k.end_increase}| +100ms to end                |
 |${k.start_decrease}| +100ms to start              |
@@ -165,10 +165,10 @@ let visual_str = `\
 | Keybind | Action                       |      |      Current selection      | 
 |---------|------------------------------|      ------------------------------- 
 | <Space> | Pause/Play selection         |      |  Start time  |   End time   | 
-| <Tab>   | Create new selection         |      | -------------|--------------| 
-|    ,    | Choose new start             |      | 03:12:20.342 | 03:12:30.342 | 
-|    .    | Choose new end               |      |      6       |      e       | 
-| <Enter> | Trim timeline to selection   |      ------------------------------- 
+|    ,    | Choose new start             |      | -------------|--------------| 
+|    .    | Choose new end               |      | 03:12:20.342 | 03:12:30.342 | 
+| <Enter> | Trim timeline to selection   |      |      f       |      n       | 
+|    -    | Undo timeline trim           |      ------------------------------- 
 |    [    | -100ms to start              |                                      
 |    ]    | +100ms to end                |                                      
 |    {    | +100ms to start              |                                      
@@ -176,9 +176,9 @@ let visual_str = `\
 |  <Esc>  | Export selection             |                                      
 ------------------------------------------                                      
                                                                                 
-                            6                                           e       
+                            f                                           n       
                             |                                           |       
- 1    2         3 45        |  7   8    9  ab           c      d        |     $ 
+ a    b         c de        |  g   h    i  jk           l      m        |     $ 
  |    |         | ||        |  |   |    |  ||           |      |        |     | 
 <==============================================================================>
 03:10:12.333              03:12:20.342 -> 03:12:30.342              03:40:12.333\
