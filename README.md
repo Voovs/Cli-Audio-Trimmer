@@ -1,4 +1,4 @@
-# Simple Audio Trimmer v0.0.2
+# Simple Audio Trimmer v0.0.3
 
 Trim audio from the comfort of your shell. Essentially a cli-frontend to ffmpeg.
 Helpful if you often trim down audio clips
@@ -19,10 +19,10 @@ Wait for v1.0.0 before using
  - Help menu 🟡
  - Command line arguments 🟡
  - Interface 🟡 (see below)
- - Interactive trimming ❌
  - Marks ❌
  - Playback ❌
  - Exporting ❌
+ - Timeline trimming ❌
  - Interesting project name ❌
 
 ### How it looks
@@ -32,27 +32,27 @@ preferences and selections
 
 ```
 
-                                 Audio Trimmer
+                                  Audio Trimmer
 
 ------------------------------------------      -------------------------------
 | Keybind | Action                       |      |      Current selection      |
 |---------|------------------------------|      -------------------------------
 | <Space> | Pause/Play selection         |      |  Start time  |   End time   |
 |    ,    | Choose new start             |      | -------------|--------------|
-|    .    | Choose new end               |      | 03:12:20.342 | 03:12:30.342 |
-| <Enter> | Trim timeline to selection   |      |      6       |      e       |
+|    .    | Choose new end               |      | 01:02:18.472 | 01:02:18.472 |
+| <Enter> | Trim timeline to selection   |      |      -       |      -       |
 |    -    | Undo timeline trim           |      -------------------------------
 |    [    | -100ms to start              |
 |    ]    | +100ms to end                |
 |    {    | +100ms to start              |
 |    }    | -100ms to end                |
-|  <Esc>  | Export selection             |
+|  <C-[>  | Export selection             |
 ------------------------------------------
 
                             6                                           e
                             |                                           |
  1    2         3 45        |  7   8    9  ab           c      d        |     $
  |    |         | ||        |  |   |    |  ||           |      |        |     |
-===============================================================================>
-00:00:00.000              03:12:20.342 -> 03:12:30.342              03:40:12.333
+<==============================================================================>
+00:00:00.000              01:02:18.472 -> 01:02:18.472              03:30:18.300
 ```

@@ -1,17 +1,15 @@
-#!/usr/bin/env node
-
 exports.printHelpMessage = printHelpMessage;
 
 function printHelpMessage() {
 const help_msg = `\
-Audio Trimmer v0.0.2
+Audio Trimmer ${global.version}
 
 USAGE:
-    audio-trimmer [OPTIONS] <audio-file>
+    audio-trimmer [FLAGS] [OPTIONS] <audio-file>
 
 FLAGS:
     -h, --help            Print this message
-    --help-interactive    Print help message for interactive mode
+    --help-interactive    Print help message for interactive mode (TODO)
 
 OPTIONS:
     -m, --mark  <time-ms>    Sets a mark. Can be specified multiple times
@@ -28,7 +26,7 @@ ARGS:
 
 //TODO
 const help_interactive = `\
-Audio Trimmer v0.0.2
+Audio Trimmer ${global.version}
 
 Use marks and manual adjustment to select an audio interval. Marks can be
 loaded with command-line options or manually. Marks 0-9 are reserved for the

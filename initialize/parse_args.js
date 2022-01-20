@@ -1,28 +1,29 @@
-#!/usr/bin/env node
 const fs = require('fs');
 
 exports.parseArgs = parseArgs;
 
-function parseArgs(argv, global_state) {
-    let g = global_state;
 
-    if (argv.length == 0) {
-        throw new Error('No audio file supplied');
-    } else if (argv.includes("-h") || argv.includes("--help")) {
-        g.is_help = true;
-        return g;
+// Interpret command line arguments. See ./help.js or --help for specification
+function parseArgs(argv) {
+    let opts = {
+        is_help: false,
+        audio_file: null,
+        marks: Array(),
+        start_time: null,
+        end_time: null,
     }
 
+    if (argv.length == 0) {
+        throw new Error("Incorrect number of arguments. See --help");
+    } else if (argv.includes("-h") || argv.includes("--help")) {
+        opts.is_help = true;
+        return opts;
+    }
 
-
+    // Parse args
     arg_loop:
     for (let i = 0; i < argv.length - 1; i++) {
         switch(argv[i]) {
-            case "-h":
-            case "--help":
-                g.is_help = true;
-                console.log("help");
-                return g;
             case "-m":
             case "--mark":
                 ms = strToNumber(argv[i+1]);
@@ -35,8 +36,8 @@ function parseArgs(argv, global_state) {
             case "--start":
                 ms = strToNumber(argv[i+1]);
 
-                g.marks.push(ms);
-                g.selection.start_time = ms;
+                opts.marks.push(ms);
+                opts.start_time = ms;
 
                 i++;
                 break;
@@ -44,19 +45,31 @@ function parseArgs(argv, global_state) {
             case "--end":
                 ms = strToNumber(argv[i+1]);
 
-                g.marks.push(ms);
-                g.selection.end_time = ms;
+                opts.marks.push(ms);
+                opts.end_time = ms;
 
                 i++;
                 break;
         }
     }
 
-    g.audio_file = argv[argv.length - 1];
+    if (typeof opts.start_time === "number" && opts.start_time < 0)
+        throw new Error("Starting time cannot be negative");
 
-    fs.accessSync(g.audio_file, fs.constants.R_OK);
+    if (typeof opts.end_time === "number" && opts.end_time < 0)
+        throw new Error("Ending time cannot be negative");
 
-    return g;
+    if (typeof opts.start_time === "number"
+        && typeof opts.end_time === "number"
+        && typeofopts.start_time >= opts.end_time
+    )
+        throw new Error("Starting time must be before ending time");
+
+    // Verify audio file is readable
+    opts.audio_file = argv[argv.length - 1];
+    fs.accessSync(opts.audio_file, fs.constants.R_OK);
+
+    return opts
 }
 
 

@@ -1,25 +1,78 @@
-#!/usr/bin/env node
-exports.interfaceString = interfaceString;
+exports.startInterface = startInterface;
+exports.eraseInterface = eraseInterface;
+exports.updateDisplay = updateDisplay;
+
+
+// Initialize interface without overwriting scrollback
+function startInterface() {
+    // Clear the screen without overwriting scrollback, on supported terminals
+    process.stdout.moveCursor(0, -process.stdout.rows);  // Cursor to bottom
+        // Sets the current bottom row as one above the new top row
+    process.stdout.clearScreenDown();
+
+    updateDisplay(null);
+}
+
+
+// TODO: Store initial lines somewhere to write them back
+function eraseInterface() {
+    process.stdout.moveCursor(0, -24);
+    process.stdout.clearScreenDown();
+    process.stdout.cursorTo(0, Math.floor(process.stdout.rows / 2));
+}
+
+
+// Redraw updated interface
+// Args:
+//   key (obj | null): Seconds argument returned by 'keypress' event
+function updateDisplay(key) {
+    process.stdout.moveCursor(0, -24);
+
+    let str = interfaceString(global.keybinds, global.state).split(/\r?\n/);
+    //console.log(str.length);
+
+    for (let r = 0; r < 24; r++) {
+        process.stdout.clearLine();
+        process.stdout.write(str[r]);
+
+        if (r == 15 && key) {
+            process.stdout.cursorTo(50);
+            process.stdout.write(`Last key: ${formatKey(key)}`);
+            //process.stdout.write(`Key: ${formatKey(key)}` + " ".repeat(14));
+        }
+        process.stdout.moveCursor(0, 1);
+        process.stdout.cursorTo(0);
+    }
+}
+
 
 // Returns 80x24 string for the interface
 // Args:
 //   keybinds (Object): Dictionary of user-specified keybinds
 //   global_state (Object): Object for the current state of the program
-function interfaceString(keybinds, global_state) {
+function interfaceString(keybinds, state) {
     let k = new formattedKeybinds(keybinds);
-    let t = new formattedTimes(global_state);
-    let g = global_state;
+    let tl = {
+        start: formatMilli(state.timeline.start_time),
+        end: formatMilli(state.timeline.end_time),
+    };
+    let sel = {
+        start:  formatMilli(state.selection.start_time),
+        end:    formatMilli(state.selection.end_time),
+        s_mark: state.selection.start_mark ? state.selection.start_mark : "-",
+        e_mark: state.selection.end_mark    ? state.selection.end_mark  : "-",
+    };
 
     return `
-                                 Audio Trimmer
+                                  Audio Trimmer
 
 ------------------------------------------      -------------------------------
 | Keybind | Action                       |      |      Current selection      |
 |---------|------------------------------|      -------------------------------
 |${k.play}| Pause/Play selection         |      |  Start time  |   End time   |
 |${k.new_start}| Choose new start             |      | -------------|--------------|
-|${k.new_end}| Choose new end               |      | ${t.start_time} | ${t.end_time} |
-|${k.trim_timeline}| Trim timeline to selection   |      |      ${g.start_mark}       |      ${g.end_mark}       |
+|${k.new_end}| Choose new end               |      | ${sel.start} | ${sel.end} |
+|${k.trim_timeline}| Trim timeline to selection   |      |      ${sel.s_mark}       |      ${sel.e_mark}       |
 |${k.undo_trim}| Undo timeline trim           |      -------------------------------
 |${k.start_increase}| -100ms to start              |
 |${k.end_increase}| +100ms to end                |
@@ -28,8 +81,8 @@ function interfaceString(keybinds, global_state) {
 |${k.export}| Export selection             |
 ------------------------------------------
 
-${timelineStr(g)}
-${t.timeline_start}              ${t.start_time} -> ${t.end_time}              ${t.timeline_end}`;
+${timelineStr(state)}
+${tl.start}              ${sel.start} -> ${sel.end}              ${tl.end}`;
 }
 
 
@@ -44,18 +97,7 @@ function formattedKeybinds(keybinds) {
     for (action in keybinds) {
         let key = keybinds[action];
 
-        if (key.length == 1) {
-            this[action] = `    ${key}    `;
-        } else {
-            let encased = `<${key.charAt(0).toUpperCase() + key.slice(1)}>`;
-
-            let spacing = (9 - key.length) / 2 - 1;
-
-            let left = Math.floor(spacing);  // Bias toward left align
-            let right = Math.ceil(spacing);
-
-            this[action] = " ".repeat(left) + encased + " ".repeat(right);
-        }
+        this[action] = formatKey(key);
     }
 }
 
@@ -111,11 +153,47 @@ function timelineBottom(g) {
 // ==================================================================
 // Helper functions
 // ==================================================================
+//
+// Args:
+//   key (str | object): Object must follow format below:
+//       { sequence: str, name: str, ctrl: bool, meta: bool, shift: bool }
+//
+//       { sequence: 'k', name: 'k', ctrl: false, meta: false, shift: false }
+//       { sequence: '\x03', name: 'c', ctrl: true, meta: false, shift: false }
+function formatKey(key, field_width = 9) {
+    let left, right, key_str;
+
+    if (typeof key === "string") {
+        key_str = key;
+    } else {
+        key_str = (key.ctrl  ? "C-" : "")
+                + (key.meta  ? "M-" : "")
+                + (key.shift ? "S-" : "")
+                + key.name;
+    }
+
+    if (key_str.length == 1) {
+        left = right = 4;
+    } else {
+        key_str = `<${key_str.charAt(0).toUpperCase() + key_str.slice(1)}>`;
+
+        let spacing = (field_width - key.length) / 2 - 1;
+
+        left = Math.floor(spacing);  // Bias toward left align
+        right = Math.ceil(spacing);
+    }
+
+    return " ".repeat(left) + key_str + " ".repeat(right);
+}
+
 // Human readable string for milliseconds
 // Examples:
 //     formatMilli(42709)   == "00:00:42.709"
 //     formatMilli(3738472) == "01:02:18.472"
 function formatMilli(milli) {
+    if (milli === null || typeof milli === "undefined")
+        return "01:02:18.472";
+
     let hours = 0;
     let mins  = 0;
     let secs  = Math.floor(milli / 10**3);
@@ -132,7 +210,8 @@ function formatMilli(milli) {
     let hours_str = (hours >= 10 ? "" : "0") + hours;
     let mins_str  = (mins  >= 10 ? "" : "0") + mins;
     let secs_str  = (secs  >= 10 ? "" : "0") + secs;
-    let ms_str = String(milli).slice(-3);
+    let ms_str = "0".repeat(Math.max(0, 3 - String(milli).length))
+               + String(milli).slice(-3);
 
     return `${hours_str}:${mins_str}:${secs_str}.${ms_str}`
 }

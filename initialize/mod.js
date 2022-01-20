@@ -1,38 +1,37 @@
-#!/usr/bin/env node
 const parse_args = require('./parse_args');
 const help = require('./help');
+const keybinds = require('./keybinds');
 
 exports.globalState = initGlobalState;
+exports.keybinds = keybinds.keybindsDict;
 
 function initGlobalState() {
-    let g = {
-        selection: {
+    this.selection = {
             start_time: 0,
             end_time:   null,
             start_mark: null,
             end_mark:   null,
-        },
-        timeline: {
+    };
+
+    this.timeline = {
             start_time: 0,
             end_time:   null,
             is_trimmed_start: false,
             is_trimmed_end:  false,
-        },
-        marks: [],
-        is_help: false,
-        audio_file: null,
     };
 
-
     try {
-        parse_args.parseArgs(process.argv.slice(2), g);
+        let opts = parse_args.parseArgs(process.argv.slice(2));
 
-        if (g.is_help) {
+        if (opts.is_help) {
             help.printHelpMessage();
             process.exit(0);
         } else {
-            console.log("setting global state");
-            return g;
+            this.audio_file           = opts.audio_file;
+            this.marks                = opts.marks;
+            this.selection.start_time = opts.start_time;
+            this.selection.end_time   = opts.end_time;
+
         }
     } catch (e) {
         console.log(`Failed: ${e.message}`);

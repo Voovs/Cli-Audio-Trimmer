@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 const readline = require('readline');
-const interface = require('./interface/main.js');
-
+const interface = require('./interface/mod.js');
 
 // User-modifiable. Conflicts will result in unexpected execution
-const keybinds = {
+global.keybinds = {
     play:           "space",
     new_start:      ",",
     new_end:        ".",
@@ -18,7 +17,7 @@ const keybinds = {
 };
 
 
-var global_state = {
+global.state = {
     timeline_start: 11412333,
     start_time:     11540342,
     end_time:       11550342,
@@ -27,17 +26,23 @@ var global_state = {
     end_mark: "e",
     is_trimmed_start: true,
     is_trimmed_end:  false,
+    tty_size: {
+        rows: process.stdout.rows,
+        cols: process.stdout.columns,
+    },
 };
 
-console.log(interface.interfaceString(keybinds, global_state));
-process.exit();
+//console.log(interface.updateDisplay())
 
+//console.log(interface.interfaceString(keybinds, global_state));
+//process.exit();
+//
 
-const tty = require('tty');
+//const tty = require('tty');
 
-process.stdout.write("Hello, World");
+//process.stdout.write("Hello, World");
 
-let t = 0;
+//let t = 0;
 
 function getChar() {
   let buffer = Buffer.alloc(1)
@@ -46,8 +51,7 @@ function getChar() {
 }
 
 process.stdin.on('keypress', function (char, key) {
-    console.log(char);
-    console.dir(key);
+    interface.updateDisplay(key);
 });
 
 
@@ -55,10 +59,11 @@ const input = process.stdin;
 const output = process.stdout;
 
 const rl = readline.createInterface({input, output});
+interface.updateDisplay(null);
 
-rl.on('history', function (history) {
-    console.log(`History: ${history}`);
-});
+//rl.on('history', function (history) {
+//    console.log(`History: ${history}`);
+//});
 
 //setTimeout(function () {
 //process.stdout.cursorTo(0);

@@ -1,11 +1,32 @@
 #!/usr/bin/env node
-const version = "v0.0.2";
+global.version = "v0.0.3";
 
-const init = require('./initialize/main.js');
-const interface = require('./interface/main.js');
+const readline = require('readline');
 
-var global_state = init.globalState();
+const init = require('./initialize/mod.js');
+const interface = require('./interface/mod.js');
 
-console.dir(global_state);
-console.log("Exit successfully");
-process.exit(0);
+// Initialize global options
+global.state = new init.globalState();
+global.keybinds = new init.keybinds();
+
+// Listen to input
+const input = process.stdin;
+const output = process.stdout;
+
+readline.createInterface({input, output});
+
+// Draw and update interface
+interface.startInterface();
+
+process.stdin.on('keypress', function (_char, key) {
+    interface.updateDisplay(key);
+});
+
+process.on('SIGINT', function () {
+    interface.eraseInterface();
+    process.exit(0);
+});
+
+
+setInterval(() => {}, 1 << 30);  // Keep program alive indefinitely
