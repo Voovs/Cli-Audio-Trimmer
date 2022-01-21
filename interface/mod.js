@@ -1,5 +1,7 @@
-const fmt    = require.main.require('./utils/key_format.js');
-const fmt_ms = require.main.require('./utils/time_format.js');
+const fmt = require.main.require('./utils/mod.js');
+
+const timeline = require('./timeline.js');
+const menu = require('./menu.js');
 
 exports.startInterface = startInterface;
 exports.eraseInterface = eraseInterface;
@@ -17,6 +19,7 @@ function startInterface() {
 }
 
 
+// Erase the interface and center the cursor
 // TODO: Store initial lines somewhere to write them back
 function eraseInterface() {
     process.stdout.moveCursor(0, -24);
@@ -40,6 +43,7 @@ function updateDisplay(key) {
         process.stdout.clearLine();
         process.stdout.write(str[r]);
 
+        // TODO: Remove debugging edit here
         if (r == 15 && key) {
             process.stdout.cursorTo(50);
             process.stdout.write(`Last key: ${fmt.formatDisplayKey(key, 9)}`);
@@ -51,106 +55,34 @@ function updateDisplay(key) {
 
 
 // Returns 80x24 string for the interface
-// Args:
-//   keybinds (Object): Dictionary of user-specified keybinds
-//   global_state (Object): Object for the current state of the program
-function interfaceString(keybinds, state) {
-    let k = new formattedKeybinds(keybinds);
-    let tl = {
-        start: fmt_ms.formatMilli(state.timeline.start_time),
-        end: fmt_ms.formatMilli(state.timeline.end_time),
-    };
-    let sel = {
-        start:  fmt_ms.formatMilli(state.selection.start),
-        end:    fmt_ms.formatMilli(state.selection.end),
-        s_mark: state.selection.start_mark ? state.selection.start_mark : "-",
-        e_mark: state.selection.end_mark    ? state.selection.end_mark  : "-",
-    };
+function interfaceString() {
+    const timeline_str = timeline.timelineStr(80);
 
-    return `
-                                  Audio Trimmer
+    const title = "\n" + fmt.centerStr("Audio Trimmer", 80, false) + "\n\n";
 
-------------------------------------------      -------------------------------
-| Keybind | Action                       |      |      Current selection      |
-|---------|------------------------------|      -------------------------------
-|${k.play}| Pause/Play selection         |      |  Start time  |   End time   |
-|${k.new_start}| Choose new start             |      | -------------|--------------|
-|${k.new_end}| Choose new end               |      | ${sel.start} | ${sel.end} |
-|${k.trim_timeline}| Trim timeline to selection   |      |      ${sel.s_mark}       |      ${sel.e_mark}       |
-|${k.undo_trim}| Undo timeline trim           |      -------------------------------
-|${k.start_increase}| -100ms to start              |
-|${k.end_increase}| +100ms to end                |
-|${k.start_decrease}| +100ms to start              |
-|${k.end_decrease}| -100ms to end                |
-|${k.export}| Export selection             |
-------------------------------------------
-
-${timelineStr(state)}
-${tl.start}              ${sel.start} -> ${sel.end}              ${tl.end}`;
+    return title + menu.menuStr(80) + "\n\n" + timeline_str + "\n" + bottomTimeStampsStr(80);
 }
 
 
-
-// ==================================================================
-// Formatted objects
-// ==================================================================
-// Format keybinds into human-friendly strings
+// Returns string for the timestamps at the very bottom. Minimum width for this
+// to work properly is 52 characters
 // Args:
-//   keybinds (object: <action_name: key>): Map of actions to their keybind
-function formattedKeybinds(keybinds) {
-    for (action in keybinds) {
-        let key = keybinds[action];
+//     width (int): Number of characters the string can take up
+function bottomTimeStampsStr(width) {
+    const tl_start = fmt.formatMilli(global.state.timeline.start_time);
+    const tl_end   = fmt.formatMilli(global.state.timeline.end_time);
 
-        this[action] = fmt.formatDisplayKey(key, 9);
-    }
-}
+    const sel_start = fmt.formatMilli(global.state.selection.start);
+    const sel_end = fmt.formatMilli(global.state.selection.end);
 
+    //                                  ┌Number of timestamps
+    //                                  |   ┌Width of each timestamp "00:00:00.000"
+    //                                  │   │    ┌Middle arrow " -> "
+    //                                  │   │    │    ┌Symmetric around middle
+    //                                  │   │    │    │
+    const spacing = " ".repeat((width - 4 * 12 - 4) / 2);
 
-// Convert millisecond times to human-friendly string
-// Args:
-//   g (object): Object must contain relevent time information
-function formattedTimes(g) {
-    let times = [
-            "timeline_start",
-            "start_time",
-            "end_time",
-            "timeline_end",
-    ];
-
-    for (prop of times)
-        this[prop] = fmt_ms.formatMilli(g[prop]);
-};
-
-
-// ==================================================================
-// Timeline
-// ==================================================================
-// Return a string representation of the timeline
-// Args:
-//   g (object): Global object for state of the program
-function timelineStr(g) {
-    return timelineTop(g) + timelineBottom(g);
-}
-
-
-// Return string indicating current marks on timeline
-function timelineTop(g) {
-    return `\
-                            6                                           e
-                            |                                           |       \n`
-+
-`\
- 1    2         3 45        |  7   8    9  ab           c      d        |     $
- |    |         | ||        |  |   |    |  ||           |      |        |     | \n`
-}
-
-
-// Return string for the bottom bar of the timeline
-function timelineBottom(g) {
-    let left_char = g.is_trimmed_start ? "=" : "<";
-    let right_char = g.is_trimmed_end  ? "=" : ">";
-
-    return left_char + "=".repeat(78) + right_char;
+    return `${tl_start}${ spacing }${sel_start} -> ${sel_end}${ spacing }${tl_end}`
 }
 
 
@@ -159,7 +91,7 @@ function timelineBottom(g) {
 // ==================================================================
 let visual_str = `\
                                                                                 
-                                 Audio Trimmer                                  
+                                  Audio Trimmer                                 
                                                                                 
 ------------------------------------------      ------------------------------- 
 | Keybind | Action                       |      |      Current selection      | 
@@ -167,19 +99,19 @@ let visual_str = `\
 | <Space> | Pause/Play selection         |      |  Start time  |   End time   | 
 |    ,    | Choose new start             |      | -------------|--------------| 
 |    .    | Choose new end               |      | 03:12:20.342 | 03:12:30.342 | 
-| <Enter> | Trim timeline to selection   |      |      f       |      n       | 
+| <Enter> | Trim timeline to selection   |      |      -       |      n       | 
 |    -    | Undo timeline trim           |      ------------------------------- 
 |    [    | -100ms to start              |                                      
 |    ]    | +100ms to end                |                                      
 |    {    | +100ms to start              |                                      
 |    }    | -100ms to end                |                                      
-|  <Esc>  | Export selection             |                                      
+|  <C-[>  | Export selection             |                                      
 ------------------------------------------                                      
                                                                                 
-                            f                                           n       
-                            |                                           |       
- a    b         c de        |  g   h    i  jk           l      m        |     $ 
- |    |         | ||        |  |   |    |  ||           |      |        |     | 
-<==============================================================================>
+                          <                                             >       
+                          |                                             |       
+0 a   b         c de      | f  g   h    i  jk           l      m        n      $
+| |   |         | ||      | |  |   |    |  ||           |      |        |      |
+<-------------------------===============================================------>
 03:10:12.333              03:12:20.342 -> 03:12:30.342              03:40:12.333\
 `;

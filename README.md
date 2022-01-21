@@ -1,4 +1,4 @@
-# Simple Audio Trimmer v0.0.4
+# Simple Audio Trimmer v0.0.5
 
 Trim audio from the comfort of your shell. Essentially a cli-frontend to ffmpeg.
 Helpful if you often trim down audio clips
@@ -12,7 +12,7 @@ Requires `ffmpeg` and `node` somewhere in your path. No npm dependencies!
 ### State of Project
 
 <strong>Does NOT work</strong>. Currently at a very early stage of development.
-Wait for v1.0.0 before using
+Wait for at least v0.1.0 before using
 
 <!-- ❌ 🟡 ✅ -->
 
@@ -33,15 +33,15 @@ preferences and selections
 
 ```
 
-                                  Audio Trimmer
+                                 Audio Trimmer
 
 ------------------------------------------      -------------------------------
 | Keybind | Action                       |      |      Current selection      |
 |---------|------------------------------|      -------------------------------
 | <Space> | Pause/Play selection         |      |  Start time  |   End time   |
 |    ,    | Choose new start             |      | -------------|--------------|
-|    .    | Choose new end               |      | 01:02:18.472 | 01:02:18.472 |
-| <Enter> | Trim timeline to selection   |      |      -       |      -       |
+|    .    | Choose new end               |      | 03:12:20.342 | 03:12:30.342 |
+| <Enter> | Trim timeline to selection   |      |      -       |      n       |
 |    -    | Undo timeline trim           |      -------------------------------
 |    [    | -100ms to start              |
 |    ]    | +100ms to end                |
@@ -50,10 +50,10 @@ preferences and selections
 |  <C-[>  | Export selection             |
 ------------------------------------------
 
-                            6                                           e
-                            |                                           |
- 1    2         3 45        |  7   8    9  ab           c      d        |     $
- |    |         | ||        |  |   |    |  ||           |      |        |     |
-<==============================================================================>
-00:00:00.000              01:02:18.472 -> 01:02:18.472              03:30:18.300
+                          <                                             >
+                          |                                             |
+0 a   b         c de      | f  g   h    i  jk           l      m        n      $
+| |   |         | ||      | |  |   |    |  ||           |      |        |      |
+<-------------------------===============================================------>
+03:10:12.333              03:12:20.342 -> 03:12:30.342              03:40:12.333
 ```

@@ -29,7 +29,7 @@ process.stdin.on('keypress', function (_char, key) {
 });
 
 process.on('SIGINT', function () {
-    interface.eraseInterface();
+    //interface.eraseInterface();
     process.exit(0);
 });
 
