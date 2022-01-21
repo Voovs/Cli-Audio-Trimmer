@@ -1,3 +1,5 @@
+const backend = require('../backend/mod.js');
+
 const parse_args = require('./parse_args');
 const help = require('./help');
 const keybinds = require('./keybinds');
@@ -6,9 +8,10 @@ exports.globalState = initGlobalState;
 exports.keybinds = keybinds.keybindsDict;
 
 function initGlobalState() {
+    // Set defaults ====
     this.selection = {
-            start_time: 0,
-            end_time:   null,
+            start:      0,
+            end:        null,
             start_mark: null,
             end_mark:   null,
     };
@@ -20,21 +23,37 @@ function initGlobalState() {
             is_trimmed_end:  false,
     };
 
+    this.user_opts = {
+        increment_size: 100,
+        output_name:    null,
+    };
+
+    // Parse command line arguments ====
+    let opts;
+
     try {
-        let opts = parse_args.parseArgs(process.argv.slice(2));
-
-        if (opts.is_help) {
-            help.printHelpMessage();
-            process.exit(0);
-        } else {
-            this.audio_file           = opts.audio_file;
-            this.marks                = opts.marks;
-            this.selection.start_time = opts.start_time;
-            this.selection.end_time   = opts.end_time;
-
-        }
+        opts = parse_args.parseArgs(process.argv.slice(2));
     } catch (e) {
-        console.log(`Failed: ${e.message}`);
+        console.log(`Argument Error: ${e.message}`);
         process.exit(1);
     }
+
+    // Print help and exit ====
+    if (opts.is_help) {
+        help.printHelpMessage();
+        process.exit(0);
+    }
+
+    // Set props ====
+    const file_length = backend.audioLength(opts.audio_file);
+    const file_ext =
+        opts.audio_file.split(".")[opts.audio_file.split(".").length - 1];
+
+    this.user_opts.input_name  = opts.audio_file;
+    this.user_opts.output_name = "./trimmed." + file_ext;
+    this.marks                 = opts.marks;
+
+    this.selection.start       = opts.start_time ? opts.start_time : 0;
+    this.selection.end         = opts.end_time ? opts.end_time : file_length;
+    this.timeline.end_time     = file_length;
 }

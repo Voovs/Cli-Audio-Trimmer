@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-global.version = "v0.0.3";
+global.version = "v0.0.4";
 
 const readline = require('readline');
 
@@ -10,6 +10,9 @@ const interface = require('./interface/mod.js');
 global.state = new init.globalState();
 global.keybinds = new init.keybinds();
 
+//console.dir(global.state);
+
+const backend = require('./backend/mod.js');
 // Listen to input
 const input = process.stdin;
 const output = process.stdout;
@@ -20,6 +23,8 @@ readline.createInterface({input, output});
 interface.startInterface();
 
 process.stdin.on('keypress', function (_char, key) {
+    backend.handleKeyPress(key);
+
     interface.updateDisplay(key);
 });
 

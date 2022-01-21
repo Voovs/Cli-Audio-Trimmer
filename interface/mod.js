@@ -1,11 +1,14 @@
+const fmt    = require.main.require('./utils/key_format.js');
+const fmt_ms = require.main.require('./utils/time_format.js');
+
 exports.startInterface = startInterface;
 exports.eraseInterface = eraseInterface;
 exports.updateDisplay = updateDisplay;
 
 
-// Initialize interface without overwriting scrollback
+// Initialize interface without overwriting scrollback. Only works on flashier
+// terminals, others still lose their scrollback
 function startInterface() {
-    // Clear the screen without overwriting scrollback, on supported terminals
     process.stdout.moveCursor(0, -process.stdout.rows);  // Cursor to bottom
         // Sets the current bottom row as one above the new top row
     process.stdout.clearScreenDown();
@@ -26,10 +29,12 @@ function eraseInterface() {
 // Args:
 //   key (obj | null): Seconds argument returned by 'keypress' event
 function updateDisplay(key) {
+    if (key && key.name === "return")
+        process.stdout.moveCursor(0, -1);
+
     process.stdout.moveCursor(0, -24);
 
     let str = interfaceString(global.keybinds, global.state).split(/\r?\n/);
-    //console.log(str.length);
 
     for (let r = 0; r < 24; r++) {
         process.stdout.clearLine();
@@ -37,8 +42,7 @@ function updateDisplay(key) {
 
         if (r == 15 && key) {
             process.stdout.cursorTo(50);
-            process.stdout.write(`Last key: ${formatKey(key)}`);
-            //process.stdout.write(`Key: ${formatKey(key)}` + " ".repeat(14));
+            process.stdout.write(`Last key: ${fmt.formatDisplayKey(key, 9)}`);
         }
         process.stdout.moveCursor(0, 1);
         process.stdout.cursorTo(0);
@@ -53,12 +57,12 @@ function updateDisplay(key) {
 function interfaceString(keybinds, state) {
     let k = new formattedKeybinds(keybinds);
     let tl = {
-        start: formatMilli(state.timeline.start_time),
-        end: formatMilli(state.timeline.end_time),
+        start: fmt_ms.formatMilli(state.timeline.start_time),
+        end: fmt_ms.formatMilli(state.timeline.end_time),
     };
     let sel = {
-        start:  formatMilli(state.selection.start_time),
-        end:    formatMilli(state.selection.end_time),
+        start:  fmt_ms.formatMilli(state.selection.start),
+        end:    fmt_ms.formatMilli(state.selection.end),
         s_mark: state.selection.start_mark ? state.selection.start_mark : "-",
         e_mark: state.selection.end_mark    ? state.selection.end_mark  : "-",
     };
@@ -97,7 +101,7 @@ function formattedKeybinds(keybinds) {
     for (action in keybinds) {
         let key = keybinds[action];
 
-        this[action] = formatKey(key);
+        this[action] = fmt.formatDisplayKey(key, 9);
     }
 }
 
@@ -114,7 +118,7 @@ function formattedTimes(g) {
     ];
 
     for (prop of times)
-        this[prop] = formatMilli(g[prop]);
+        this[prop] = fmt_ms.formatMilli(g[prop]);
 };
 
 
@@ -148,89 +152,6 @@ function timelineBottom(g) {
 
     return left_char + "=".repeat(78) + right_char;
 }
-
-
-// ==================================================================
-// Helper functions
-// ==================================================================
-//
-// Args:
-//   key (str | object): Object must follow format below:
-//       { sequence: str, name: str, ctrl: bool, meta: bool, shift: bool }
-//
-//       { sequence: 'k', name: 'k', ctrl: false, meta: false, shift: false }
-//       { sequence: '\x03', name: 'c', ctrl: true, meta: false, shift: false }
-function formatKey(key, field_width = 9) {
-    let left, right, key_str;
-
-    if (typeof key === "string") {
-        key_str = key;
-    } else {
-        key_str = (key.ctrl  ? "C-" : "")
-                + (key.meta  ? "M-" : "")
-                + (key.shift ? "S-" : "")
-                + key.name;
-    }
-
-    if (key_str.length == 1) {
-        left = right = 4;
-    } else {
-        key_str = `<${key_str.charAt(0).toUpperCase() + key_str.slice(1)}>`;
-
-        let spacing = (field_width - key.length) / 2 - 1;
-
-        left = Math.floor(spacing);  // Bias toward left align
-        right = Math.ceil(spacing);
-    }
-
-    return " ".repeat(left) + key_str + " ".repeat(right);
-}
-
-// Human readable string for milliseconds
-// Examples:
-//     formatMilli(42709)   == "00:00:42.709"
-//     formatMilli(3738472) == "01:02:18.472"
-function formatMilli(milli) {
-    if (milli === null || typeof milli === "undefined")
-        return "01:02:18.472";
-
-    let hours = 0;
-    let mins  = 0;
-    let secs  = Math.floor(milli / 10**3);
-
-    while (secs >= 3600) {
-        secs -= 3600;
-        hours++;
-    }
-    while (secs >= 60) {
-        secs -= 60;
-        mins++;
-    }
-
-    let hours_str = (hours >= 10 ? "" : "0") + hours;
-    let mins_str  = (mins  >= 10 ? "" : "0") + mins;
-    let secs_str  = (secs  >= 10 ? "" : "0") + secs;
-    let ms_str = "0".repeat(Math.max(0, 3 - String(milli).length))
-               + String(milli).slice(-3);
-
-    return `${hours_str}:${mins_str}:${secs_str}.${ms_str}`
-}
-
-
-// Converts the .srt time format to milliseconds
-// Examples:
-//     timeInMilli("00:00:26,059") == 26059
-//     timeInMilli("20:23:35,647") == 73415647
-function timeInMilli(time_str) {
-    let a = time_str.split(",");
-    let b = a[0].split(":");
-
-    let secs = (b[0] * 3600) + (b[1] * 60) + b[2];
-
-    return secs * 1000 + a[1]
-}
-
-
 
 
 // ==================================================================
