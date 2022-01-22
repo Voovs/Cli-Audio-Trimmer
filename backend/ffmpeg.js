@@ -1,7 +1,7 @@
 const sh = require('child_process');
 
 exports.getAudioLength = getAudioLength;
-exports.togglePlay = playAudio;
+exports.togglePlay = togglePlay;
 exports.exportSelection = saveTrimmedFile;
 
 // Returns the length of the audio file in milliseconds
@@ -38,36 +38,64 @@ function getAudioLength(file) {
 }
 
 
-function saveTrimmedFile(input_file, output_file, start_time, end_time) {
+function saveTrimmedFile() {
+    const o = global.state.user_opts;
+    const sel = global.state.selection;
+
     const command_vec = [
         `ffmpeg`,
-        `-i '${file}'`,
-        `-ss ${start_time}`,
-        `-to ${end_time}`,
+        `-i '${o.input_name}'`,
+        `-ss ${sel.start}ms`,
+        `-to ${sel.end}ms`,
         `-c copy`,
         "-hide_banner",
         "-loglevel error",
-        "'" + output_file + "'",
+        "'" + o.output_name + "'",
     ];
 
     sh.execSync(command_vec.join(" "));
-
-    return true
 }
 
 
-function playAudio(file) {
+function togglePlay() {
+    if (global.state.user_opts.is_playing) {
+        global.events.emit('stop_playback');
+    } else {
+        playAudio();
+    }
+}
+
+
+function playAudio() {
+    const seek_to = global.state.selection.start;
+    const duration = global.state.selection.end - global.state.selection.start;
+
+    if (duration < 100) return;
+
     const command_vec = [
-        `ffplay`,
+        "ffplay",
+        "-ss", `${seek_to}ms`,
+        "-t", `${duration}ms`,
         "-hide_banner",
-        "-loglevel error",
+        "-loglevel", "error",
         "-nodisp",
         "-autoexit",
-        "'" + file + "'",
+        global.state.user_opts.input_name,
     ];
 
-    sh.execSync(command_vec.join(" "));
+    const ffplay = sh.spawn(command_vec[0], command_vec.slice(1));
 
-    return true
+    global.state.user_opts.is_playing = true;
 
+    global.events.once('stop_playback', () => {
+        ffplay.kill();
+        global.state.user_opts.is_playing = false;
+    });
+
+    // TODO: remove debugging
+    //ffplay.stdout.on('data', (data) => console.error(data));
+    //ffplay.stderr.on('data', (data) => console.error(`Error: ${data}`));
+
+    ffplay.on('close', () => global.events.emit('stop_playback'));
+    ffplay.on('exit',  () => global.events.emit('stop_playback'));
 }

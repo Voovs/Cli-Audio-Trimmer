@@ -1,4 +1,7 @@
+const backend = require.main.require('./backend/selection.js');
+
 exports.timelineStr = timelineStr;
+exports.nearestPosition = nearestPosition;
 
 // Returns a string for a timeline with a given width. Timeline takes up 5 lines
 //
@@ -26,29 +29,17 @@ function timelineStr(width) {
         bottom:  "",  // Selected interval as bar
     };
 
-    // Draw marked points ====
-    let marks = markedIndicies(character_weight, bar_width);
+    // Draw marks ====
+    backend.updateMarks();
 
-    let char_code = 97;
-
-    global.state.marks.sort((a, b) => a[0] - b[0]);
-
-    global.state.marks.forEach((el, i) => {
-        let pos = nearestPosition(el.time, character_weight, bar_width) + 1;
-
-        if (timeline_str.top[pos] === " ") {
-            const char = String.fromCharCode(char_code++);
-
-            timeline_str.top[pos] = char;
-            timeline_str.mid[pos] = "|";
-
-            global.state.marks[i].char = char;
-        }
+    global.state.marks.forEach(mark => {
+        timeline_str.top[mark.pos] = mark.char;
+        timeline_str.mid[mark.pos] = "|";
     });
 
     // Draw selection marks and bold selected interval ====
-    const start = nearestPosition(global.state.selection.start, character_weight, bar_width) + 1;
-    const end   = nearestPosition(global.state.selection.end,   character_weight, bar_width) + 1;
+    const start = nearestPosition(global.state.selection.start);
+    const end   = nearestPosition(global.state.selection.end);
 
     markSelectedInterval(timeline_str, start, end);
 
@@ -132,41 +123,20 @@ function timelineBottom(start, end, unselected, selected, left, right, length) {
 }
 
 
-// Find marked characters on timeline
-// Args:
-//     character_weight:
-//         Difference in milliseconds between adjacent characters on the
-//         timeline
-// Return: Array of positions that are marked. Assumes 1 based indexing
-function markedIndicies(character_weight, bar_width) {
-    const mark = global.state.marks;
-    let indicies = Array();
-
-    for (let i = 0; i < mark.length; i++) {
-        let pos = nearestPosition(mark[i], character_weight, bar_width) + 1;
-        indicies.push(pos);
-    }
-
-    // Only keep unique indicies and filter ====
-    indicies = indicies.filter((v, i, a) => a.indexOf(v) === i);
-    indicies.sort((a, b) => a[0] - b[0]);
-
-    return indicies
-}
-
-
 // Use a binary search to find the nearest position on a value, based on fixed
 // incremental weights for each position
 //
 // Args:
-//     value_weight: Weight of the value being positioned
-//     pos_weight: Difference between any two adjacent position's weigth
-//     pos_count: Number of positions available
+//     value_weight:
+    //     Weight of the value being positioned. Usually the time in ms
 //
 // Returns:
-//     int: Index of nearest position, starting at 0
-//     false: When the value_weight is over 1 pos_weight greater than the end
-function nearestPosition(value_weight, pos_weight, pos_count) {
+//     int: Index of nearest position, starting at 1
+function nearestPosition(value_weight) {
+    const tl = global.state.timeline;
+    const pos_count = global.state.user_opts.window_width - 2;
+    const pos_weight = (tl.end_time - tl.start_time) / pos_count;
+
     let l = 0;
     let u = pos_count - 1;
 
@@ -180,7 +150,7 @@ function nearestPosition(value_weight, pos_weight, pos_count) {
     }
 
     if (l <= value_weight && value_weight < u)
-        return l
+        return l + 1
     else
-        return u
+        return u + 1
 }

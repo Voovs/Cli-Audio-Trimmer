@@ -21,7 +21,10 @@ function globalState() {
 
     this.user_opts = {
         increment_size: 100,
+        input_name:     null,
         output_name:    null,
+        window_width:   80,
+        is_playing:     false,
     };
 
 
@@ -47,5 +50,11 @@ function globalState() {
     this.selection.end         = opts.end_time ? opts.end_time : file_length;
     this.timeline.end_time     = file_length;
 
-    this.marks       = opts.marks.map(ms => { return {time: ms, char: ""}});
+    this.marks = opts.marks.map(function (ms) {
+        return {
+            time: ms,
+            char: null,
+            pos:  null,
+        };
+    });
 }
