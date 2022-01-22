@@ -1,4 +1,5 @@
 const fs = require('fs');
+const help = require('./help.js');
 
 exports.parseArgs = parseArgs;
 
@@ -10,7 +11,6 @@ exports.parseArgs = parseArgs;
 //       positional args. Function will drain this array
 function parseArgs(argv) {
     let opts = {
-        is_help: false,
         audio_file: null,
         marks: Array(),
         start_time: null,
@@ -21,7 +21,8 @@ function parseArgs(argv) {
     if (argv.length == 0) {
         throw new Error("Incorrect number of arguments. See --help");
     } else if (argv.includes("-h") || argv.includes("--help")) {
-        opts.is_help = true;
+        help.printHelpMessage();
+        process.exit(0);
         return opts;
     }
 

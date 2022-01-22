@@ -1,4 +1,4 @@
-# Simple Audio Trimmer v0.0.5
+# Simple Audio Trimmer v0.0.6
 
 Trim audio from the comfort of your shell. Essentially a cli-frontend to ffmpeg.
 Helpful if you often trim down audio clips
@@ -19,7 +19,7 @@ Wait for at least v0.1.0 before using
  - Help menu 🟡
  - Command line arguments 🟡
  - Interface 🟡 (see below)
- - Marks ❌
+ - Marks 🟡
  - Adjust selection 🟡
  - Playback 🟡
  - Exporting 🟡

@@ -29,10 +29,21 @@ function timelineStr(width) {
     // Draw marked points ====
     let marks = markedIndicies(character_weight, bar_width);
 
-    marks.forEach((index, i) => {
-        const char = String.fromCharCode(i + 97);
-        timeline_str.top[index] = char
-        timeline_str.mid[index] = "|";
+    let char_code = 97;
+
+    global.state.marks.sort((a, b) => a[0] - b[0]);
+
+    global.state.marks.forEach((el, i) => {
+        let pos = nearestPosition(el.time, character_weight, bar_width) + 1;
+
+        if (timeline_str.top[pos] === " ") {
+            const char = String.fromCharCode(char_code++);
+
+            timeline_str.top[pos] = char;
+            timeline_str.mid[pos] = "|";
+
+            global.state.marks[i].char = char;
+        }
     });
 
     // Draw selection marks and bold selected interval ====
@@ -69,7 +80,7 @@ function markSelectedInterval(timeline_str, start, end) {
     timeline_str.sel_top[start] = "<";
     timeline_str.sel_mid[start] =  timeline_str.mid[start] = "|";
 
-    timeline_str.sel_top[end] = ">";
+    timeline_str.sel_top[end] = (start === end) ? "V" : ">";
     timeline_str.sel_mid[end] = timeline_str.mid[end] = "|";
 
     // Set global state for overlap with a timeline mark ====

@@ -6,10 +6,19 @@ const selection = require('./selection.js');
 exports.handleKeyPress = handleKeyPress;
 exports.audioLength = ffmpeg.getAudioLength;
 
+//global.events.on('handle_keypress', handleKeyPress);
+
 function handleKeyPress(key_obj) {
+    console.error(`Handle for key ${key_obj.name}`);
+    //if (global.state.ignore_next) {
+    //    console.error(`Catch: ${key_obj}`);
+    //    return;
+    //}
+
     const k = new fixedKeyBinds();
 
     const key_str = fmt.keyStrID(key_obj);
+    console.error(`${key_str}  |  ${k.new_start}`);
 
     let opts = global.state.user_opts;
     let sel  = global.state.selection;
@@ -52,8 +61,21 @@ function handleKeyPress(key_obj) {
             );
             break;
 
+        // Mark jumping ====
         case k.new_start:
+            //global.state.ignore_next = true;
+            global.events.off('handle_keypress', handleKeyPress);
+            process.stdin.once('keypress', (c, k) =>
+                jumpToMark(true, c , k)
+            );
+            break;
+
         case k.new_end:
+            //global.state.ignore_next = true;
+            global.events.off('handle_keypress', handleKeyPress);
+            process.stdin.once('keypress', (c, k) => jumpToMark(false, c , k));
+            break;
+
         case k.trim_timeline:
         case k.undo_trim:
             throw new Error("Unimplemented behaviour");
@@ -85,3 +107,27 @@ function fixedKeyBinds() {
         );
     }
 }
+
+
+function jumpToMark(is_start, char, _key) {
+    const sel   = is_start ? "start" : "end";
+    const other = is_start ? "end" : "start";
+
+    const sel_time   = global.state.selection[sel];
+    const other_time = global.state.selection[other];
+
+    global.state.marks.forEach(obj => {
+        if (obj.char === char) {
+            // Prevent jump from making end < start
+            if (is_start && obj.time <= other_time)
+                global.state.selection[sel] = obj.time;
+            else if (!is_start && obj.time >= other_time)
+                global.state.selection[sel] = obj.time;
+        }
+    });
+
+    //global.state.ignore_next = false;
+
+    global.events.emit('redraw_interface', null);
+    global.events.on('handle_keypress', handleKeyPress);
+ }

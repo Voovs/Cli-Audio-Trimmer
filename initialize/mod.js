@@ -1,59 +1,34 @@
-const backend = require('../backend/mod.js');
+const readline      = require('readline');
+const event_emitter = require('events').EventEmitter;
+const backend       = require.main.require('./backend/mod.js');
+const interface     = require.main.require('./interface/mod.js');
 
-const parse_args = require('./parse_args');
-const help = require('./help');
+const global_state = require('./global_state.js');
 const keybinds = require('./keybinds');
 
-exports.globalState = initGlobalState;
-exports.keybinds = keybinds.keybindsDict;
+exports.initGlobal = initGlobal;
+exports.startInterface = startInterface;
 
-function initGlobalState() {
-    // Set defaults ====
-    this.selection = {
-            start:      0,
-            end:        null,
-            start_mark: null,
-            end_mark:   null,
-    };
+function initGlobal() {
+    global.keybinds = new keybinds.keybindsDict();
+    global.state    = new global_state.globalState();
 
-    this.timeline = {
-            start_time: 0,
-            end_time:   null,
-            is_trimmed_start: false,
-            is_trimmed_end:  false,
-    };
+    global.events = new event_emitter();
+    global.events.on('handle_keypress', backend.handleKeyPress);
+    global.events.on('redraw_interface', interface.updateDisplay);
+}
 
-    this.user_opts = {
-        increment_size: 100,
-        output_name:    null,
-    };
 
-    // Parse command line arguments ====
-    let opts;
+function startInterface() {
+    const input = process.stdin;
+    const output = process.stdout;
 
-    try {
-        opts = parse_args.parseArgs(process.argv.slice(2));
-    } catch (e) {
-        console.log(`Argument Error: ${e.message}`);
-        process.exit(1);
-    }
+    readline.createInterface({input, output});
 
-    // Print help and exit ====
-    if (opts.is_help) {
-        help.printHelpMessage();
-        process.exit(0);
-    }
+    process.stdin.on('keypress', function (_char, key) {
+        global.events.emit('handle_keypress', key);
+        global.events.emit('redraw_interface', key);
+    });
 
-    // Set props ====
-    const file_length = backend.audioLength(opts.audio_file);
-    const file_ext =
-        opts.audio_file.split(".")[opts.audio_file.split(".").length - 1];
-
-    this.user_opts.input_name  = opts.audio_file;
-    this.user_opts.output_name = "./trimmed." + file_ext;
-    this.marks                 = opts.marks;
-
-    this.selection.start       = opts.start_time ? opts.start_time : 0;
-    this.selection.end         = opts.end_time ? opts.end_time : file_length;
-    this.timeline.end_time     = file_length;
+    interface.startInterface();
 }

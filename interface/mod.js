@@ -55,12 +55,18 @@ function updateDisplay(key) {
 
 
 // Returns 80x24 string for the interface
+// TODO: Remove hardcoding for 80 width?
 function interfaceString() {
     const timeline_str = timeline.timelineStr(80);
 
-    const title = "\n" + fmt.centerStr("Audio Trimmer", 80, false) + "\n\n";
+    const title = "\n"
+        + fmt.centerStr(`${global.program_name} ${global.version}`, 80, false)
+        + "\n\n";
 
-    return title + menu.menuStr(80) + "\n\n" + timeline_str + "\n" + bottomTimeStampsStr(80);
+    return title
+        + menu.menuStr(80) + "\n\n"
+        + timeline_str + "\n"
+        + bottomTimeStampsStr(80);
 }
 
 
