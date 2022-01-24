@@ -1,26 +1,24 @@
 const fmt = require.main.require('./utils/mod.js');
 
-const timeline = require('./timeline.js');
-const menu = require('./menu.js');
+const display = require('./display.js');
 
-exports.startInterface = startInterface;
+exports.drawInitial = drawInitial;
 exports.eraseInterface = eraseInterface;
 exports.updateDisplay = updateDisplay;
 
 
 // Initialize interface without overwriting scrollback. Only works on flashier
 // terminals, others still lose their scrollback
-function startInterface() {
+function drawInitial() {
     process.stdout.moveCursor(0, -process.stdout.rows);  // Cursor to bottom
         // Sets the current bottom row as one above the new top row
     process.stdout.clearScreenDown();
 
-    updateDisplay(null);
+    updateDisplay();
 }
 
 
 // Erase the interface and center the cursor
-// TODO: Store initial lines somewhere to write them back
 function eraseInterface() {
     process.stdout.moveCursor(0, -24);
     process.stdout.clearScreenDown();
@@ -31,13 +29,17 @@ function eraseInterface() {
 // Redraw updated interface
 // Args:
 //   key (obj | null): Seconds argument returned by 'keypress' event
-function updateDisplay(key) {
+function updateDisplay() {
+    let key = global.runtime.keypress_history.get(0);
+    key = key ? key.display : null;
+
     if (key && key.name === "return")
         process.stdout.moveCursor(0, -1);
 
-    process.stdout.moveCursor(0, -24);
+    //process.stdout.moveCursor(0, -24);
+    process.stdout.cursorTo(0, 0);
 
-    let str = interfaceString().split(/\r?\n/);
+    let str = display.interfaceString().split(/\r?\n/);
 
     for (let r = 0; r < 24; r++) {
         process.stdout.clearLine();
@@ -46,50 +48,13 @@ function updateDisplay(key) {
         // TODO: Remove debugging edit here
         if (r == 15 && key) {
             process.stdout.cursorTo(50);
-            process.stdout.write(`Last key: ${fmt.formatDisplayKey(key, 9)}`);
+            process.stdout.write(`Last key: ${key}`);
         }
         process.stdout.moveCursor(0, 1);
         process.stdout.cursorTo(0);
     }
 }
 
-
-// Returns 80x24 string for the interface
-// TODO: Remove hardcoding for 80 width?
-function interfaceString() {
-    const timeline_str = timeline.timelineStr(80);
-
-    const title = "\n"
-        + fmt.centerStr(`${global.program_name} ${global.version}`, 80, false)
-        + "\n\n";
-
-    return title
-        + menu.menuStr(80) + "\n\n"
-        + timeline_str + "\n"
-        + bottomTimeStampsStr(80);
-}
-
-
-// Returns string for the timestamps at the very bottom. Minimum width for this
-// to work properly is 52 characters
-// Args:
-//     width (int): Number of characters the string can take up
-function bottomTimeStampsStr(width) {
-    const tl_start = fmt.formatMilli(global.timeline.start_time);
-    const tl_end   = fmt.formatMilli(global.timeline.end_time);
-
-    const sel_start = fmt.formatMilli(global.selection.start);
-    const sel_end = fmt.formatMilli(global.selection.end);
-
-    //                                  ┌Number of timestamps
-    //                                  |   ┌Width of each timestamp "00:00:00.000"
-    //                                  │   │    ┌Middle arrow " -> "
-    //                                  │   │    │    ┌Symmetric around middle
-    //                                  │   │    │    │
-    const spacing = " ".repeat((width - 4 * 12 - 4) / 2);
-
-    return `${tl_start}${ spacing }${sel_start} -> ${sel_end}${ spacing }${tl_end}`
-}
 
 
 // ==================================================================

@@ -40,32 +40,35 @@ function saveTrimmedFile() {
         "-to", `${global.selection.end}ms`,
         "-c", "copy",
         "-hide_banner",
-        "-loglevel error",
+        "-loglevel", "error",
         global.user_opts.output_name,
     ];
 
     sh.spawnSync(command, args);
+    //const stderr = out.stderr.toString();
 }
 
 
-function togglePlay(is_from_end) {
+function togglePlay(is_from_start) {
     const playback_type = global.runtime.playback_is_from_start;
 
-    if (global.runtime.playback.exitCode !== null)
-        global.rumtime.playback.kill();
+    const is_playing = (global.runtime.playback !== null && global.runtime.playback.exitCode === null);
+    let is_pause = false;
 
-    const is_pause = !playback_is_from_start != !is_from_end;  // XOR
+    if (is_playing) {
+        global.runtime.playback.kill();
+        global.runtime.playback = null;
+        is_pause = global.runtime.playback_is_from_start === is_from_start;
+    }
 
     if (!is_pause) {
-        global.runtime.playback_is_from_start = !is_from_end;
+        global.runtime.playback_is_from_start = is_from_start;
 
         const to = global.selection.end;
 
-        const from = is_from_end
-                ? Math.max(to - global.user_opts.play_end_time, 0)
-                : global.selection.start;
+        const from = is_from_start ? global.selection.start
+                : Math.max(to - global.user_opts.play_end_time, 0);
 
-        // This is really crude
         playAudio(from, to);
     }
 }
@@ -87,14 +90,5 @@ function playAudio(from, to) {
         global.user_opts.input_name,
     ];
 
-    const ffplay = sh.spawn(command, args);
-
-    global.runtime.playback = ffplay;
-
-    // TODO: remove debugging
-    //ffplay.stdout.on('data', (data) => console.error(data));
-    //ffplay.stderr.on('data', (data) => console.error(`Error: ${data}`));
-
-    ffplay.on('close', () => global.runtime.playback = null);
-    //ffplay.on('exit', () => global.runtime.playback = null);
+    global.runtime.playback = sh.spawn(command, args);
 }

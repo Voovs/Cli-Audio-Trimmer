@@ -6,9 +6,11 @@ const strs = require('./string_format.js');
 exports.formatMilli   = time.formatMilli;
 exports.unformatMilli = time.unformatMilli;
 
-exports.formatKey =        keys.formatKey;
+exports.formatKey        = keys.formatKey;
 exports.formatDisplayKey = keys.formatDisplayKey;
-exports.unformatKey =      keys.unformatKey;
-exports.keyStrID =         keys.keyStrID;
+exports.displayKey       = keys.displayKey;
+exports.unformatKey      = keys.unformatKey;
+exports.keyStrID         = keys.keyStrID;
 
 exports.centerStr = strs.centerStr;
+exports.leftAlignStr = strs.leftAlignStr;

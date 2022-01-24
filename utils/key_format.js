@@ -1,3 +1,5 @@
+const strs = require('./string_format.js');
+
 exports.formatKey = formatKey;
 exports.displayKey = displayKey;
 exports.formatDisplayKey = formatDisplayKey;
@@ -29,6 +31,7 @@ function formatKey(key) {
                 + (key.shift ? "S-" : "")
                 + typeof key.name === "undefined" ? key.sequence : key.name;
     }
+//    console.log(key, key_str);
 
     if (key_str.length > 1)
         key_str = `<${key_str.charAt(0).toUpperCase() + key_str.slice(1)}>`;
@@ -60,7 +63,7 @@ function formatKey(key) {
 //     }, 9) === "  <C-c>  "
 function formatDisplayKey(key, field_width) {
     const key_str = displayKey(key);
-    return centerStr(key_str, field_width)
+    return strs.centerStr(key_str, field_width)
 }
 
 

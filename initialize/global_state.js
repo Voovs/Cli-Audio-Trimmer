@@ -1,6 +1,6 @@
 const RingBuffer = require.main.require('./utils/ring_buffer.js').RingBuffer;
 const markObject = require.main.require('./utils/marks.js').markObject;
-const fmt = require.main.require('./utils/key_format.js');
+const fmt = require.main.require('./utils/mod.js');
 
 exports.userOpts  = userOpts;
 exports.keybindsDict = keybindsDict;
@@ -11,14 +11,16 @@ exports.runtime   = runtime;
 
 function userOpts(opts) {
     this.input_name     = opts.input_name;
-    this.output_name    = opts.output_name    || null;
+    this.output_name    = opts.output_name    || "./trimmed.mp3";
     this.increment_size = opts.increment_size || 100;
     this.window_width   = opts.window_width   || 80;
+    this.window_height  = 24;
     this.play_end_time  = opts.play_end_time  || 2000;
+    this.menu_field_width = 9;
 }
 
 
-function keybindsDict(opts) {
+function keybindsDict(opts, field_width) {
     //TODO: Simplify
     const keybinds = new keybindsRawDict(opts);
     this.display_format = {};
@@ -28,7 +30,7 @@ function keybindsDict(opts) {
     for (const [action, key] of Object.entries(new keybindsRawDict(opts))) {
         const display_key = fmt.displayKey(key);
 
-        this.display_format[action] = display_key;
+        this.display_format[action] = fmt.centerStr(display_key, field_width);
         this.codes[action] = fmt.keyStrID(fmt.unformatKey(display_key));
         this.raw[action] = key;
     }
@@ -53,8 +55,8 @@ function keybindsRawDict(opts) {
 
 
 function selection(opts, audio_length) {
-    this.start = opts.start || 0;
-    this.end   = opts.end   || audio_length;
+    this.start = opts.start_time || 0;
+    this.end   = opts.end_time   || audio_length;
 
     // Unimplemented
     this.start_mark = null;

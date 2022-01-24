@@ -4,7 +4,8 @@ exports.nearestPosition = nearestPosition;
 // Create a new mark object
 function markObject(time, index, pos) {
     this.time = time;
-    this.char = index ? String.fromCharCode(index + 97) : null;  // "a" === 97
+    this.char = typeof index === "number" ? String.fromCharCode(index + 97)
+                                          : null;  // "a" === 97
     this.pos  = pos || null;
 }
 

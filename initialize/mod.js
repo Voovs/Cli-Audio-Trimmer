@@ -20,9 +20,10 @@ function setGlobalOptions() {
 
     const audio_length = backend.getAudioLength(opts.input_name);
 
-    global.keybinds  = new global_state.keybindsDict(opts);
+    global.keybinds  = new global_state.keybindsDict(opts, 9);
     global.user_opts = new global_state.userOpts(opts, audio_length);
     global.timeline  = new global_state.timeline(opts, audio_length);
+    global.selection = new global_state.selection(opts, audio_length);
     global.runtime   = new global_state.runtime();
 }
 

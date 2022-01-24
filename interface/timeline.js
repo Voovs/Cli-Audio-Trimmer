@@ -31,7 +31,7 @@ function timelineStr(width) {
     // Draw marks ====
     backend.updateMarks();
 
-    global.runtime.marks.forEach(mark => {
+    global.timeline.marks.forEach(mark => {
         timeline_str.top[mark.pos] = mark.char;
         timeline_str.mid[mark.pos] = "|";
     });

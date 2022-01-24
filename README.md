@@ -1,4 +1,4 @@
-# Simmer v0.0.8 - The Simple CLI Audio Trimmer
+# Simmer v0.0.9 - The Simple CLI Audio Trimmer
 
 Trim audio from the comfort of your shell. Essentially a cli-frontend to ffmpeg.
 Helpful if you often trim down audio clips
@@ -11,7 +11,7 @@ Requires `ffmpeg` and `node` somewhere in your path. No npm dependencies!
 
 ### State of Project
 
-<strong>Does NOT work</strong>. Currently at a very early stage of development.
+<strong>Barely works</strong>. Currently at a very early stage of development.
 Lots of odd bugs. Wait for at least v0.1.0 before using
 
 <!-- ❌ 🟡 ✅ -->
@@ -21,7 +21,7 @@ Lots of odd bugs. Wait for at least v0.1.0 before using
  - Interface 🟡 (see below)
  - Marks 🟡
  - Adjust selection 🟡
- - User-configured keybindings ❌
+ - User-configured keybindings 🟡
  - Playback 🟡 (missing live timer)
  - Exporting 🟡
  - Timeline trimming ❌

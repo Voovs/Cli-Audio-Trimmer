@@ -1,5 +1,4 @@
-const fmt  = require.main.require('./utils/key_format.js');
-const fmt_ms = require.main.require('./utils/time_format.js');
+const fmt  = require.main.require('./utils/mod.js');
 
 exports.menuStr = menuStr;
 
@@ -9,29 +8,31 @@ exports.menuStr = menuStr;
 //   global_state (Object): Object for the current state of the program
 function menuStr() {
     const selection = global.selection;
-    const k = new formattedKeybinds(keybinds);
+    const k = global.keybinds.display_format;
 
-    let sel = {
-        start:  fmt_ms.formatMilli(selection.start),
-        end:    fmt_ms.formatMilli(selection.end),
+    const sel = {
+        start:  fmt.formatMilli(selection.start),
+        end:    fmt.formatMilli(selection.end),
         s_mark: selection.start_mark ? selection.start_mark : "-",
         e_mark: selection.end_mark   ? selection.end_mark   : "-",
     };
+
+    const inc = global.user_opts.increment_size;
 
     return `\
 ------------------------------------------      -------------------------------
 | Keybind | Action                       |      |      Current selection      |
 |---------|------------------------------|      -------------------------------
-|${k.play}| Pause/Play selection         |      |  Start time  |   End time   |
-|${k.new_start}| Choose new start             |      | -------------|--------------|
-|${k.new_end}| Choose new end               |      | ${sel.start} | ${sel.end} |
-|${k.trim_timeline}| Trim timeline to selection   |      |      ${sel.s_mark}       |      ${sel.e_mark}       |
-|${k.undo_trim}| Undo timeline trim           |      -------------------------------
-|${k.start_increase}| -100ms to start              |
-|${k.end_increase}| +100ms to end                |
-|${k.start_decrease}| +100ms to start              |
-|${k.end_decrease}| -100ms to end                |
-|${k.export}| Export selection             |
+|${k.play}| ${fmt.leftAlignStr("Pause/Play selection", 28)} |      |  Start time  |   End time   |
+|${k.new_start}| ${fmt.leftAlignStr("Choose new start", 28)} |      | -------------|--------------|
+|${k.new_end}| ${fmt.leftAlignStr("Choose new end", 28)} |      | ${sel.start} | ${sel.end} |
+|${k.trim_timeline}| ${fmt.leftAlignStr("Trim timeline to selection", 28)} |      |${fmt.centerStr(sel.s_mark, 14)}|${fmt.centerStr(sel.e_mark, 14)}|
+|${k.undo_trim}| ${fmt.leftAlignStr("Undo timeline trim", 28)} |      -------------------------------
+|${k.start_increase}| ${fmt.leftAlignStr(`-${inc}ms to start`, 28)} |
+|${k.start_decrease}| ${fmt.leftAlignStr(`+${inc}ms to start`, 28)} |
+|${k.end_decrease}| ${fmt.leftAlignStr(`-${inc}ms to end`, 28)} |
+|${k.end_increase}| ${fmt.leftAlignStr(`+${inc}ms to end`, 28)} |
+|${k.export}| ${fmt.leftAlignStr("Export selection", 28)} |
 ------------------------------------------                                      `
 }
 

@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 global.program_name = "Simmer";
-global.version = "v0.0.8";
+global.version = "v0.0.9";
 
 // Start up program ====
 const init = require('./initialize/mod.js');
 init.setGlobalOptions();
 init.registerEvents();
-console.dir(global);
 init.startInterface();
 
 // Start REPL ====
@@ -14,33 +13,41 @@ const backend = require('./backend/mod.js');
 const fmt     = require('./utils/key_format.js');
 
 process.stdin.on('keypress', function (char, key) {
-    const k = global.keybindings.codes;
+    global.runtime.keypress_history.force_push_front({
+        code: fmt.keyStrID(key),
+        display: fmt.formatDisplayKey(key, 9),
+        raw: char,
+    });
 
-    global.runtime.keypress_history.force_push_front(fmt.keyStrID(key_obj));
+    const k = global.keybinds.codes;
 
     const curr_key = global.runtime.keypress_history.get(0);
     const last_key = global.runtime.keypress_history.get(1);
+    const prev_key = global.runtime.keypress_history.get(2);
+    const four_key = global.runtime.keypress_history.get(3);
 
-    switch (last_key) {
-        // Playback audio ====
-        case k.play:
-        case k.play_end:
-            //TODO
-            backend.togglePlay(k.play_end === key_str);
-            return;
-
+    switch (last_key ? last_key.code : null) {
         // Mark jumping ====
         case k.new_start:
         case k.new_end:
-            backend.jumpToMark(k.new_start === last_key, curr_key);
+            const _3_back_was_jump =
+                prev_key && (k.new_start === prev_key.code || k.new_end === prev_key.code);
+            const _4_back_was_jump =
+                four_key && (k.new_start === four_key.code || k.new_end === four_key.code);
+
+            if (_3_back_was_jump && !_4_back_was_jump)
+                break;
+
+            backend.jumpToMark(k.new_start === last_key.code, curr_key.raw);
+            global.events.emit('redraw_interface');
             return;
     }
 
-    switch (curr_key) {
+    switch (curr_key.code) {
         // Playback audio ====
         case k.play:
         case k.play_end:
-            backend.togglePlay(k.play_end === curr_key);
+            backend.togglePlay(k.play === curr_key.code);
             break;
 
         // Increase/decrease selection slightly ====
@@ -60,12 +67,13 @@ process.stdin.on('keypress', function (char, key) {
         // Mark setting ====
         case k.mark_start:
         case k.mark_end:
-            backend.setMark(k.mark_start === curr_key);
+            backend.setMark(k.mark_start === curr_key.code);
             break;
 
         // Export ====
         case k.export:
-            ffmpeg.exportSelection();
+            console.error("exporting");
+            backend.exportSelection();
             break;
 
         //TODO:
@@ -74,18 +82,17 @@ process.stdin.on('keypress', function (char, key) {
             throw new Error("Unimplemented behaviour");
             break;
     }
+
+    global.events.emit('redraw_interface');
 });
 
 
-// TODO: Remove
-process.stdin.on('history', function (hist) {
-    console.error(hist);
-    //backend.handleKeyPress(char, key);
-    //interface.updateDisplay();
-});
-
+// Erase screen on exit ====
+const interface = require('./interface/mod.js');
 
 process.on('SIGINT', function () {
     interface.eraseInterface();
     process.exit(0);
 });
+
+setInterval(() => {}, 1 << 30);

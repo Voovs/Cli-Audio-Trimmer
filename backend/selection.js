@@ -30,7 +30,7 @@ function moveSelection(is_start, is_increase) {
 // Updates the global marks array. Called from various other modules
 //
 // Returns: None
-//     Mutates `global.runtime.marks`. Updated array is guarenteeded to be
+//     Mutates `global.timeline.marks`. Updated array is guarenteeded to be
 //     sorted with no visually overlapping marks
 function updateMarks(is_redraw) {
     // Filter out overlapping marks and update characters associated with marks
@@ -63,6 +63,7 @@ function updateMarks(is_redraw) {
 
 // Moves edge of selection to a given mark
 function jumpToMark(is_start, char) {
+    console.error(`Jump fom start? ${is_start} to ${char}`);
     const sel   = is_start ? "start" : "end";
     const other = is_start ? "end" : "start";
 
@@ -77,7 +78,7 @@ function jumpToMark(is_start, char) {
         global.selection[sel] = global.timeline.end_time;
 
     // Find matching mark ====
-    global.runtime.marks.forEach(obj => {
+    global.timeline.marks.forEach(obj => {
         // Prevent jump from making end < start
         const is_valid_jump = (is_start && obj.time <= other_time)
                            || (!is_start && obj.time >= other_time);
@@ -103,13 +104,13 @@ function setMark(is_start) {
 
     updateMarks();
 
-    for (let i = 0; i < global.runtime.marks.length; i++) {
-        if (global.runtime.marks[i].pos === pos) {    // Overwrite
-            global.runtime.marks[i] =
-                new markObject(insert_time, global.runtime.marks[i].char, pos);
+    for (let i = 0; i < global.timeline.marks.length; i++) {
+        if (global.timeline.marks[i].pos === pos) {    // Overwrite
+            global.timeline.marks[i] =
+                new markObject(insert_time, global.timeline.marks[i].char, pos);
             break;
-        } else if (global.runtime.marks[i].pos > pos) {  // Insert
-            global.runtime.marks.splice(i, 0, new markObject(time, null, pos));
+        } else if (global.timeline.marks[i].pos > pos) {  // Insert
+            global.timeline.marks.splice(i, 0, new markObject(time, null, pos));
             break;
         }
     }
