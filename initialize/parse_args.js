@@ -11,18 +11,42 @@ exports.parseArgs = parseArgs;
 //       positional args. Function will drain this array
 function parseArgs(argv) {
     let opts = {
-        audio_file: null,
-        marks: Array(),
-        start_time: null,
-        end_time: null,
-    }
+        is_help:        false,
+
+        input_name:     null,
+        output_name:    null,
+
+        window_width:   null,
+        play_end_time:  null,
+
+        start_time:     null,
+        end_time:       null,
+        increment_size: null,
+
+        mark_times:     Array(),
+
+        keys: {
+            play: null,
+            play_end: null,
+            new_start: null,
+            new_end: null,
+            trim_timeline: null,
+            undo_trim: null,
+            start_increase: null,
+            end_increase: null,
+            start_decrease: null,
+            end_decrease: null,
+            mark_start: null,
+            mark_end: null,
+            export: null,
+        },
+    };
 
     // Early exits ====
     if (argv.length == 0) {
         throw new Error("Incorrect number of arguments. See --help");
     } else if (argv.includes("-h") || argv.includes("--help")) {
-        help.printHelpMessage();
-        process.exit(0);
+        opts.is_help = true;
         return opts;
     }
 
@@ -33,7 +57,7 @@ function parseArgs(argv) {
             case "--mark":
                 ms = strToNumber(argv[1]);
 
-                opts.marks.push(ms);
+                opts.mark_times.push(ms);
 
                 argv = argv.slice(2);
                 break;
@@ -41,7 +65,7 @@ function parseArgs(argv) {
             case "--start":
                 ms = strToNumber(argv[1]);
 
-                opts.marks.push(ms);
+                opts.mark_times.push(ms);
                 opts.start_time = ms;
 
                 argv = argv.slice(2);
@@ -50,7 +74,7 @@ function parseArgs(argv) {
             case "--end":
                 ms = strToNumber(argv[1]);
 
-                opts.marks.push(ms);
+                opts.mark_times.push(ms);
                 opts.end_time = ms;
 
                 argv = argv.slice(2);
@@ -58,16 +82,16 @@ function parseArgs(argv) {
         }
     }
 
-    opts.audio_file = argv[0];
+    opts.input_name = argv[0];
 
     // Verify arguments ====
     verifyStartEndTimes(opts.start_time, opts.end_time);
 
     // Verify audio file is readable
-    fs.accessSync(opts.audio_file, fs.constants.R_OK);
+    fs.accessSync(opts.input_name, fs.constants.R_OK);
 
     // Sort in non-decreasing order
-    opts.marks.sort((a, b) => a - b);
+    opts.mark_times.sort((a, b) => a - b);
 
     return opts
 }

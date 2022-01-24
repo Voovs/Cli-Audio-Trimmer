@@ -1,33 +1,86 @@
-const backend = require('../backend/mod.js');
-const parse_args = require('./parse_args.js');
+const RingBuffer = require.main.require('./utils/ring_buffer.js').RingBuffer;
+const markObject = require.main.require('./utils/marks.js').markObject;
+const fmt = require.main.require('./utils/key_format.js');
 
-exports.globalState = globalState;
-
-function globalState() {
-    // Set defaults ====
-    this.selection = {
-            start:      0,
-            end:        null,
-            start_mark: null,
-            end_mark:   null,
-    };
-
-    this.timeline = {
-            start_time: 0,
-            end_time:   null,
-            is_trimmed_start: false,
-            is_trimmed_end:  false,
-    };
-
-    this.user_opts = {
-        increment_size: 100,
-        input_name:     null,
-        output_name:    null,
-        window_width:   80,
-        is_playing:     false,
-    };
+exports.userOpts  = userOpts;
+exports.keybindsDict = keybindsDict;
+exports.selection = selection;
+exports.timeline  = timeline;
+exports.runtime   = runtime;
 
 
+function userOpts(opts) {
+    this.input_name     = opts.input_name;
+    this.output_name    = opts.output_name    || null;
+    this.increment_size = opts.increment_size || 100;
+    this.window_width   = opts.window_width   || 80;
+    this.play_end_time  = opts.play_end_time  || 2000;
+}
+
+
+function keybindsDict(opts) {
+    //TODO: Simplify
+    const keybinds = new keybindsRawDict(opts);
+    this.display_format = {};
+    this.codes = {};
+    this.raw = {};
+
+    for (const [action, key] of Object.entries(new keybindsRawDict(opts))) {
+        const display_key = fmt.displayKey(key);
+
+        this.display_format[action] = display_key;
+        this.codes[action] = fmt.keyStrID(fmt.unformatKey(display_key));
+        this.raw[action] = key;
+    }
+}
+
+
+function keybindsRawDict(opts) {
+    this.play           = opts.play           || "<Space>";
+    this.play_end       = opts.play_end       || "`";
+    this.new_start      = opts.new_start      || "j";
+    this.new_end        = opts.new_end        || "e";
+    this.trim_timeline  = opts.trim_timeline  || "ENTER";
+    this.undo_trim      = opts.undo_trim      || "-";
+    this.start_increase = opts.start_increase || "1";
+    this.end_increase   = opts.end_increase   || "4";
+    this.start_decrease = opts.start_decrease || "2";
+    this.end_decrease   = opts.end_decrease   || "3";
+    this.mark_start     = opts.mark_start     || "m";
+    this.mark_end       = opts.mark_end       || "k";
+    this.export         = opts.export         || "<S-R>";
+}
+
+
+function selection(opts, audio_length) {
+    this.start = opts.start || 0;
+    this.end   = opts.end   || audio_length;
+
+    // Unimplemented
+    this.start_mark = null;
+    this.end_mark   = null;
+}
+
+
+function timeline(opts, audio_length) {
+    this.start_time = 0;
+    this.end_time = audio_length;
+
+    this.marks = opts.mark_times.map((ms) => new markObject(ms));
+
+    // Unimplemented
+    this.is_trimmed_start = false;
+    this.is_trimmed_end   = false;
+}
+
+
+function runtime() {
+    this.keypress_history = new RingBuffer(10);
+    this.playback = null;
+    this.playback_is_from_start = false;
+}
+
+/*
     // Parse command line arguments ====
     let opts;
 
@@ -58,3 +111,4 @@ function globalState() {
         };
     });
 }
+*/

@@ -8,7 +8,7 @@ exports.menuStr = menuStr;
 //   keybinds (Object): Dictionary of user-specified keybinds
 //   global_state (Object): Object for the current state of the program
 function menuStr() {
-    const selection = global.state.selection;
+    const selection = global.selection;
     const k = new formattedKeybinds(keybinds);
 
     let sel = {

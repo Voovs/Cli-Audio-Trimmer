@@ -1,19 +1,28 @@
-const fmt = require.main.require('./utils/key_format.js');
-
-const ffmpeg = require('./ffmpeg.js');
 const selection = require('./selection.js');
 
-exports.handleKeyPress = handleKeyPress;
-exports.audioLength = ffmpeg.getAudioLength;
+exports.jumpToMark = selection.jumpToMark;
+exports.incStart = selection.incStart;
+exports.IncEnd   = selection.IncEnd;
+exports.DecStart = selection.DecStart;
+exports.DecEnd   = selection.DecEnd;
+exports.setMark  = selection.setMark;
+
+const ffmpeg = require('./ffmpeg.js');
+
+exports.togglePlay = ffmpeg.togglePlay;
+exports.exportSelection = ffmpeg.exportSelection;
+exports.getAudioLength  = ffmpeg.getAudioLength;
+
 
 function handleKeyPress(key_obj) {
     const k = new fixedKeyBinds();
     const key_str = fmt.keyStrID(key_obj);
 
     switch (key_str) {
+        // Playback audio ====
         case k.play:
-            //TODO: This freezes nodejs until playback is over
-            ffmpeg.togglePlay();
+        case k.play_end:
+            ffmpeg.togglePlay(k.play_end === key_str);
             break;
 
         // Increase/decrease selection slightly ====

@@ -1,4 +1,5 @@
 exports.formatKey = formatKey;
+exports.displayKey = displayKey;
 exports.formatDisplayKey = formatDisplayKey;
 exports.unformatKey = unformatKey;
 exports.keyStrID = keyStrID;
@@ -58,6 +59,12 @@ function formatKey(key) {
 //         shift: false
 //     }, 9) === "  <C-c>  "
 function formatDisplayKey(key, field_width) {
+    const key_str = displayKey(key);
+    return centerStr(key_str, field_width)
+}
+
+
+function displayKey(key) {
     let key_str;
 
     if (typeof key == "object")
@@ -88,12 +95,7 @@ function formatDisplayKey(key, field_width) {
     }
 
     // Fit to field width ====
-    let spacing = (field_width - key_str.length) / 2;
-
-    left = Math.floor(spacing);  // Bias toward left align
-    right = Math.ceil(spacing);
-
-    return " ".repeat(left) + key_str + " ".repeat(right)
+    return key_str
 }
 
 
@@ -108,23 +110,31 @@ function formatDisplayKey(key, field_width) {
 function unformatKey(key_str) {
     key_str = key_str.toLowerCase();
 
+    let key = {
+        sequence: null,
+        name:     null,
+        ctrl:     false,
+        meta:     false,
+        shift:    false,
+    };
+
     // Remove encasing
     if (key_str.match(/^<.*>$/))
         key_str = key_str.slice(1, -1);
 
     // Parse modifier keys
-    this.ctrl = this.meta = this.shift = false;
-
     while (key_str.match(/^[mcs]-/)) {
-        if      (key_str.match(/^c-/)) this.ctrl  = true;
-        else if (key_str.match(/^m-/)) this.meta  = true;
-        else if (key_str.match(/^s-/)) this.shift = true;
+        if      (key_str.match(/^c-/)) key.ctrl  = true;
+        else if (key_str.match(/^m-/)) key.meta  = true;
+        else if (key_str.match(/^s-/)) key.shift = true;
 
         key_str = key_str.slice(2);
     }
 
-    this.name = key_str;
-    this.sequence = key_str;
+    key.name = key_str;
+    key.sequence = key_str;
+
+    return key
 }
 
 

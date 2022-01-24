@@ -1,4 +1,5 @@
-const interface = require.main.require('./interface/timeline.js');
+const nearestPosition = require.main.require('./utils/marks.js').nearestPosition;
+const markObject = require.main.require('./utils/marks.js').markObject;
 
 exports.updateMarks = updateMarks;
 exports.jumpToMark  = jumpToMark;
@@ -11,9 +12,9 @@ exports.decEnd   = () => moveSelection(false, false);
 
 
 function moveSelection(is_start, is_increase) {
-    const sel = global.state.selection;
-    const tl  = global.state.timeline;
-    const inc = global.state.user_opts.increment_size;
+    const sel = global.selection;
+    const tl  = global.timeline;
+    const inc = global.user_opts.increment_size;
 
     if (is_start && is_increase)
         sel.start = Math.max(sel.start - inc, 0);
@@ -25,37 +26,38 @@ function moveSelection(is_start, is_increase) {
         sel.end   = Math.max(sel.end - inc, sel.start);
 };
 
+
 // Updates the global marks array. Called from various other modules
 //
 // Returns: None
-//     Mutates `global.state.marks`. Updated array is guarenteeded to be sorted
-//     with no visually overlapping marks
-function updateMarks() {
+//     Mutates `global.runtime.marks`. Updated array is guarenteeded to be
+//     sorted with no visually overlapping marks
+function updateMarks(is_redraw) {
     // Filter out overlapping marks and update characters associated with marks
     const filter_map = function (filtered, mark, i) {
         if (filtered === null)
             filtered = Array();
 
         // Keep mark if it's visible ====
-        const pos = interface.nearestPosition(mark.time);
+        const tl = global.timeline;
+        const count = global.user_opts.window_width - 2;
+        const weight = (tl.end_time - tl.start_time) / count;
+
+        const pos = nearestPosition(mark.time, count, weight);
 
         if (! filtered.map(e => e.pos).includes(pos))
-            filtered.push(new markObject(mark, filtered.length, pos));
+            filtered.push(new markObject(mark.time, filtered.length, pos));
 
         return filtered
     };
 
-    global.state.marks = global.state.marks
+    global.timeline.marks = global.timeline.marks
         .sort((a, b) => a.time - b.time)     // Acending order by time
         .reduce(filter_map, null);
-}
 
-
-// Create a new mark object
-function markObject(mark, char_code, pos) {
-    this.time = mark.time;
-    this.char = String.fromCharCode(char_code + 97);  // "a" === 97
-    this.pos  = pos;
+    // TODO: Redraw
+    // if (is_redraw)
+    //     interface.redraw();
 }
 
 
@@ -64,28 +66,27 @@ function jumpToMark(is_start, char) {
     const sel   = is_start ? "start" : "end";
     const other = is_start ? "end" : "start";
 
-    const sel_time   = global.state.selection[sel];
-    const other_time = global.state.selection[other];
+    const sel_time   = global.selection[sel];
+    const other_time = global.selection[other];
 
     // Jump to predefined start/end of timeline ====
     if (char === "0" && sel === "start")
-        global.state.selection[sel] = global.state.timeline.start_time;
+        global.selection[sel] = global.timeline.start_time;
 
     if (char === "$" && sel === "end")
-        global.state.selection[sel] = global.state.timeline.end_time;
+        global.selection[sel] = global.timeline.end_time;
 
     // Find matching mark ====
-    global.state.marks.forEach(obj => {
+    global.runtime.marks.forEach(obj => {
         // Prevent jump from making end < start
         const is_valid_jump = (is_start && obj.time <= other_time)
                            || (!is_start && obj.time >= other_time);
 
         if (obj.char === char && is_valid_jump)
-            global.state.selection[sel] = obj.time;
+            global.selection[sel] = obj.time;
     });
 
     updateMarks();
-    global.events.emit('redraw_interface', null);
 }
 
 
@@ -94,31 +95,24 @@ function jumpToMark(is_start, char) {
 function setMark(is_start) {
     const side = is_start ? "start" : "end";
 
-    const insert_time = global.state.selection[side];
-    const pos = interface.nearestPosition(insert_time);
+    const insert_time = global.selection[side];
+
+    const count = global.user_opts.window_width - 2;
+    const weight = (global.timeline.end_time - global.timeline.start_time) / count;
+    const pos = nearestPosition(insert_time, count, weight);
 
     updateMarks();
 
-    for (let i = 0; i < global.state.marks.length; i++) {
-        if (global.state.marks[i].pos === pos) {    // Overwrite
-            global.state.marks[i] = {
-                time: insert_time,
-                char: global.state.marks[i].char,
-                pos: pos,
-            };
-
+    for (let i = 0; i < global.runtime.marks.length; i++) {
+        if (global.runtime.marks[i].pos === pos) {    // Overwrite
+            global.runtime.marks[i] =
+                new markObject(insert_time, global.runtime.marks[i].char, pos);
             break;
-        } else if (global.state.marks[i].pos > pos) {  // Insert
-            global.state.marks.splice(i, 0, {
-                time: insert_time,
-                char: null,
-                pos: pos,
-            });
-
-            updateMarks();
+        } else if (global.runtime.marks[i].pos > pos) {  // Insert
+            global.runtime.marks.splice(i, 0, new markObject(time, null, pos));
             break;
         }
     }
 
-    global.events.emit('redraw_interface', null);
+    updateMarks();
 }

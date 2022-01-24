@@ -1,8 +1,7 @@
 const backend = require.main.require('./backend/selection.js');
+const nearestPosition = require.main.require('./utils/marks.js').nearestPosition;
 
 exports.timelineStr = timelineStr;
-exports.nearestPosition = nearestPosition;
-
 // Returns a string for a timeline with a given width. Timeline takes up 5 lines
 //
 // Args:
@@ -16,9 +15,9 @@ exports.nearestPosition = nearestPosition;
 //     |    |   |  |  |    |          |                      |      |      |         ||
 //     <-----------=========================================================---------->`
 function timelineStr(width) {
-    const tl = global.state.timeline;
     const bar_width = width - 2;  // For capped edges
-    const character_weight = (tl.end_time - tl.start_time) / bar_width;
+    const character_weight =
+        (global.timeline.end_time - global.timeline.start_time) / bar_width;
 
     // Rows of string returned
     let timeline_str = {
@@ -32,14 +31,14 @@ function timelineStr(width) {
     // Draw marks ====
     backend.updateMarks();
 
-    global.state.marks.forEach(mark => {
+    global.runtime.marks.forEach(mark => {
         timeline_str.top[mark.pos] = mark.char;
         timeline_str.mid[mark.pos] = "|";
     });
 
     // Draw selection marks and bold selected interval ====
-    const start = nearestPosition(global.state.selection.start);
-    const end   = nearestPosition(global.state.selection.end);
+    const start = nearestPosition(global.selection.start, bar_width, character_weight);
+    const end   = nearestPosition(global.selection.end, bar_width, character_weight);
 
     markSelectedInterval(timeline_str, start, end);
 
@@ -76,16 +75,16 @@ function markSelectedInterval(timeline_str, start, end) {
 
     // Set global state for overlap with a timeline mark ====
     if (timeline_str.top[start] !== " ") {
-        global.state.selection["start_mark"] = timeline_str.top[start];
+        global.selection["start_mark"] = timeline_str.top[start];
     } else {
-        global.state.selection["start_mark"] = "-";
+        global.selection["start_mark"] = "-";
         timeline_str.top[start] = "|";
     }
 
     if (timeline_str.top[end] !== " ") {
-        global.state.selection["end_mark"] = timeline_str.top[end];
+        global.selection["end_mark"] = timeline_str.top[end];
     } else {
-        global.state.selection["end_mark"] = "-";
+        global.selection["end_mark"] = "-";
         timeline_str.top[end] = "|";
     }
 }
@@ -120,37 +119,4 @@ function timelineBottom(start, end, unselected, selected, left, right, length) {
         + "\x1b[0m"
         + unselected.repeat(length - end - 2)
         + right;
-}
-
-
-// Use a binary search to find the nearest position on a value, based on fixed
-// incremental weights for each position
-//
-// Args:
-//     value_weight:
-    //     Weight of the value being positioned. Usually the time in ms
-//
-// Returns:
-//     int: Index of nearest position, starting at 1
-function nearestPosition(value_weight) {
-    const tl = global.state.timeline;
-    const pos_count = global.state.user_opts.window_width - 2;
-    const pos_weight = (tl.end_time - tl.start_time) / pos_count;
-
-    let l = 0;
-    let u = pos_count - 1;
-
-    while (Math.abs(u - l) > 1) {
-        let half = Math.round((u - l) / 2 + l);
-
-        if (value_weight < half * pos_weight)
-            u = half;
-        else
-            l = half;
-    }
-
-    if (l <= value_weight && value_weight < u)
-        return l + 1
-    else
-        return u + 1
 }

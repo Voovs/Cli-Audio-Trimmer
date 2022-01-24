@@ -1,20 +1,34 @@
 const readline      = require('readline');
-const event_emitter = require('events').EventEmitter;
+const EventEmitter = require('events').EventEmitter;
 const backend       = require.main.require('./backend/mod.js');
 const interface     = require.main.require('./interface/mod.js');
 
 const global_state = require('./global_state.js');
-const keybinds = require('./keybinds');
+const parse_args   = require('./parse_args.js');
 
-exports.initGlobal = initGlobal;
+exports.setGlobalOptions = setGlobalOptions;
+exports.registerEvents = registerEvents;
 exports.startInterface = startInterface;
 
-function initGlobal() {
-    global.keybinds = new keybinds.keybindsDict();
-    global.state    = new global_state.globalState();
+function setGlobalOptions() {
+    const opts = parse_args.parseArgs(process.argv.slice(2));
 
-    global.events = new event_emitter();
-    global.events.on('handle_keypress', backend.handleKeyPress);
+    if (opts.is_help) {
+        help.printHelpMessage();
+        process.exit(0);
+    }
+
+    const audio_length = backend.getAudioLength(opts.input_name);
+
+    global.keybinds  = new global_state.keybindsDict(opts);
+    global.user_opts = new global_state.userOpts(opts, audio_length);
+    global.timeline  = new global_state.timeline(opts, audio_length);
+    global.runtime   = new global_state.runtime();
+}
+
+
+function registerEvents() {
+    global.events = new EventEmitter();
     global.events.on('redraw_interface', interface.updateDisplay);
 }
 
@@ -25,10 +39,5 @@ function startInterface() {
 
     readline.createInterface({input, output});
 
-    process.stdin.on('keypress', function (_char, key) {
-        global.events.emit('handle_keypress', key);
-        global.events.emit('redraw_interface', key);
-    });
-
-    interface.startInterface();
+    interface.drawInitial();
 }

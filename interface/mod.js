@@ -37,7 +37,7 @@ function updateDisplay(key) {
 
     process.stdout.moveCursor(0, -24);
 
-    let str = interfaceString(global.keybinds, global.state).split(/\r?\n/);
+    let str = interfaceString().split(/\r?\n/);
 
     for (let r = 0; r < 24; r++) {
         process.stdout.clearLine();
@@ -75,11 +75,11 @@ function interfaceString() {
 // Args:
 //     width (int): Number of characters the string can take up
 function bottomTimeStampsStr(width) {
-    const tl_start = fmt.formatMilli(global.state.timeline.start_time);
-    const tl_end   = fmt.formatMilli(global.state.timeline.end_time);
+    const tl_start = fmt.formatMilli(global.timeline.start_time);
+    const tl_end   = fmt.formatMilli(global.timeline.end_time);
 
-    const sel_start = fmt.formatMilli(global.state.selection.start);
-    const sel_end = fmt.formatMilli(global.state.selection.end);
+    const sel_start = fmt.formatMilli(global.selection.start);
+    const sel_end = fmt.formatMilli(global.selection.end);
 
     //                                  ┌Number of timestamps
     //                                  |   ┌Width of each timestamp "00:00:00.000"

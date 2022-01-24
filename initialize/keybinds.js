@@ -3,6 +3,7 @@ exports.keybindsDict = keybindsDict;
 // TODO: Read user perferences from a json and validate
 function keybindsDict() {
     this.play =           "<Space>";
+    this.play_end =       "`";
     this.new_start =      "j";
     this.new_end =        "e";
     this.trim_timeline =  "ENTER";
