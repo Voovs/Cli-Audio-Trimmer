@@ -1,5 +1,7 @@
 exports.formatMilli = formatMilli;
 exports.unformatMilli = unformatMilli;
+exports.secondsToMilli = secondsToMilli;
+exports.formatSeconds = formatSeconds;
 
 // Human readable string for the time in milliseconds
 // Examples:
@@ -45,4 +47,30 @@ function unformatMilli(time_str) {
     let secs = (b[0] * 3600) + (b[1] * 60) + b[2];
 
     return secs * 1000 + a[1]
+}
+
+
+// Converts seconds into milliseconds. Supports both . and , as decimal
+// separator
+//
+// Args:
+//     seconds (string | number): Seconds to convert into milliseconds
+//
+// Examples:
+//     secondsToMilli("10")      === 10000
+//     secondsToMilli(10.301)    === 10301
+//     secondsToMilli("1418,10") === 1418100
+function secondsToMilli(seconds) {
+    const arr = seconds.toString().trim().split(/[,\.]/);
+
+    const milli = arr[0]
+        + (arr[1] ? arr[1] + ("0".repeat(3 - arr[1].length)) : "000" );
+
+    return parseInt(milli)
+}
+
+
+// Formats seconds
+function formatSeconds(seconds) {
+    return formatMilli(secondsToMilli(seconds).toString())
 }

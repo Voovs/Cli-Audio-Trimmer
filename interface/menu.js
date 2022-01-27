@@ -1,6 +1,7 @@
 const fmt  = require.main.require('./utils/mod.js');
 
 exports.menuStr = menuStr;
+exports.writeFFPlayTime = writeFFPlayTime;
 
 // Returns 80x24 string for the interface
 // Args:
@@ -30,10 +31,29 @@ function menuStr() {
 |${k.undo_trim}| ${fmt.leftAlignStr("Undo timeline trim", 28)} |      -------------------------------
 |${k.start_increase}| ${fmt.leftAlignStr(`-${inc}ms to start`, 28)} |
 |${k.start_decrease}| ${fmt.leftAlignStr(`+${inc}ms to start`, 28)} |
-|${k.end_decrease}| ${fmt.leftAlignStr(`-${inc}ms to end`, 28)} |
+|${k.end_decrease}| ${fmt.leftAlignStr(`-${inc}ms to end`, 28)} |        Play time:  Paused
 |${k.end_increase}| ${fmt.leftAlignStr(`+${inc}ms to end`, 28)} |
 |${k.export}| ${fmt.leftAlignStr("Export selection", 28)} |
 ------------------------------------------                                      `
+}
+
+
+function writeFFPlayTime(ffplay_line) {
+    process.stdout.cursorTo(62, 13);
+
+    if (ffplay_line === null || typeof ffplay_line === "undefined") {
+        process.stdout.write("Paused");
+    } else {
+        let t = ffplay_line.toString().trim();
+
+        if (t.includes("Metadata")) return;  // Not a timestamp line
+
+        t = t.match(/^\d+\.\d{2}[^\d]/);
+
+        if (t) {
+            process.stdout.write(fmt.leftAlignStr(fmt.formatSeconds(t[0]), 6));
+        }
+    }
 }
 
 

@@ -33,7 +33,7 @@ function timelineStr(width) {
 
     global.timeline.marks.forEach(mark => {
         timeline_str.top[mark.pos] = mark.char;
-        timeline_str.mid[mark.pos] = "|";
+        timeline_str.mid[mark.pos] = "│";
     });
 
     // Draw selection marks and bold selected interval ====
@@ -42,10 +42,10 @@ function timelineStr(width) {
 
     markSelectedInterval(timeline_str, start, end);
 
-    timeline_str.bottom = timelineBottom(start, end, "-", "=", "<", ">", width);
+    timeline_str.bottom = timelineBottom(start, end, "░", "█", "█", "█", width);
 
     // Draw start and end marks ====
-    timeline_str.mid[0] = timeline_str.mid[width - 1] = "|";
+    timeline_str.mid[0] = timeline_str.mid[width - 1] = "│";
     timeline_str.top[0]  = "0";
     timeline_str.top[width - 1] = "$";
 
@@ -68,24 +68,24 @@ function timelineStr(width) {
 //     <    @@@@@@@@@@@@@@@    >
 function markSelectedInterval(timeline_str, start, end) {
     timeline_str.sel_top[start] = "<";
-    timeline_str.sel_mid[start] =  timeline_str.mid[start] = "|";
+    timeline_str.sel_mid[start] =  timeline_str.mid[start] = "│";
 
     timeline_str.sel_top[end] = (start === end) ? "V" : ">";
-    timeline_str.sel_mid[end] = timeline_str.mid[end] = "|";
+    timeline_str.sel_mid[end] = timeline_str.mid[end] = "│";
 
     // Set global state for overlap with a timeline mark ====
     if (timeline_str.top[start] !== " ") {
         global.selection["start_mark"] = timeline_str.top[start];
     } else {
         global.selection["start_mark"] = "-";
-        timeline_str.top[start] = "|";
+        timeline_str.top[start] = "│";
     }
 
     if (timeline_str.top[end] !== " ") {
         global.selection["end_mark"] = timeline_str.top[end];
     } else {
         global.selection["end_mark"] = "-";
-        timeline_str.top[end] = "|";
+        timeline_str.top[end] = "│";
     }
 }
 

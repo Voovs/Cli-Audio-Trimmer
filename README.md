@@ -1,4 +1,4 @@
-# Simmer v0.0.9 - The Simple CLI Audio Trimmer
+# Simmer v0.0.10 - The Simple CLI Audio Trimmer
 
 Trim audio from the comfort of your shell. Essentially a cli-frontend to ffmpeg.
 Helpful if you often trim down audio clips
@@ -34,14 +34,14 @@ preferences and selections
 
 ```
 
-                                 Audio Trimmer
+                                 Simmer v0.0.10
 
 ------------------------------------------      -------------------------------
 | Keybind | Action                       |      |      Current selection      |
 |---------|------------------------------|      -------------------------------
 | <Space> | Pause/Play selection         |      |  Start time  |   End time   |
 |    ,    | Choose new start             |      | -------------|--------------|
-|    .    | Choose new end               |      | 03:12:20.342 | 03:12:30.342 |
+|    .    | Choose new end               |      | 00:00:07.580 | 00:00:10.601 |
 | <Enter> | Trim timeline to selection   |      |      -       |      n       |
 |    -    | Undo timeline trim           |      -------------------------------
 |    [    | -100ms to start              |
@@ -51,10 +51,10 @@ preferences and selections
 |  <C-[>  | Export selection             |
 ------------------------------------------
 
-                          <                                             >
-                          |                                             |
-0 a   b         c de      | f  g   h    i  jk           l      m        n      $
-| |   |         | ||      | |  |   |    |  ||           |      |        |      |
-<-------------------------===============================================------>
-03:10:12.333              03:12:20.342 -> 03:12:30.342              03:40:12.333
+                             <             >
+                             │             │
+0a b          c  d     e     │ f           gh     i    j                 k    l$
+││ │          │  │     │     │ │           ││     │    │                 │    ││
+ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░███████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+00:00:00.000              00:00:07.580 -> 00:00:10.601              00:00:20.040
 ```

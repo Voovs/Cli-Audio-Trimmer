@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 global.program_name = "Simmer";
-global.version = "v0.0.9";
+global.version = "v0.0.10";
 
 // Start up program ====
 const init = require('./initialize/mod.js');
@@ -72,7 +72,6 @@ process.stdin.on('keypress', function (char, key) {
 
         // Export ====
         case k.export:
-            console.error("exporting");
             backend.exportSelection();
             break;
 

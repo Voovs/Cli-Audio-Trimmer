@@ -1,4 +1,5 @@
 const sh = require('child_process');
+const interface = require.main.require('./interface/mod.js');
 
 exports.getAudioLength = getAudioLength;
 exports.togglePlay = togglePlay;
@@ -84,11 +85,16 @@ function playAudio(from, to) {
         "-ss", `${from}ms`,
         "-t", `${duration}ms`,
         "-hide_banner",
-        "-loglevel", "error",
+        //"-loglevel", "error",
         "-nodisp",
         "-autoexit",
         global.user_opts.input_name,
     ];
 
     global.runtime.playback = sh.spawn(command, args);
+    global.runtime.playback.stderr.on('data', (data) => {
+        interface.writeFFPlayTime(data);
+    });
+
+    global.runtime.playback.on('close', interface.writeFFPlayTime);
 }

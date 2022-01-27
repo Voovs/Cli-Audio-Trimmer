@@ -55,6 +55,9 @@ function updateMarks(is_redraw) {
         .sort((a, b) => a.time - b.time)     // Acending order by time
         .reduce(filter_map, null);
 
+    if (global.timeline.marks === null)
+        global.timeline.marks = new Array();  // Blank array not null
+
     // TODO: Redraw
     // if (is_redraw)
     //     interface.redraw();
@@ -63,7 +66,6 @@ function updateMarks(is_redraw) {
 
 // Moves edge of selection to a given mark
 function jumpToMark(is_start, char) {
-    console.error(`Jump fom start? ${is_start} to ${char}`);
     const sel   = is_start ? "start" : "end";
     const other = is_start ? "end" : "start";
 
@@ -104,13 +106,17 @@ function setMark(is_start) {
 
     updateMarks();
 
-    for (let i = 0; i < global.timeline.marks.length; i++) {
-        if (global.timeline.marks[i].pos === pos) {    // Overwrite
+    for (let i = 0; i <= global.timeline.marks.length; i++) {
+        if (i === global.timeline.marks.length) {  // Last mark
+            global.timeline.marks.push(new markObject(insert_time, null, pos));
+            break;
+        } else if (global.timeline.marks[i].pos === pos) {  // Overwrite
             global.timeline.marks[i] =
                 new markObject(insert_time, global.timeline.marks[i].char, pos);
             break;
         } else if (global.timeline.marks[i].pos > pos) {  // Insert
-            global.timeline.marks.splice(i, 0, new markObject(time, null, pos));
+            global.timeline.marks.splice(i, 0,
+                new markObject(insert_time, null, pos));
             break;
         }
     }

@@ -1,10 +1,12 @@
 const fmt = require.main.require('./utils/mod.js');
 
 const display = require('./display.js');
+const menus   = require('./menu.js');
 
 exports.drawInitial = drawInitial;
 exports.eraseInterface = eraseInterface;
 exports.updateDisplay = updateDisplay;
+exports.writeFFPlayTime = menus.writeFFPlayTime;
 
 
 // Initialize interface without overwriting scrollback. Only works on flashier
@@ -54,35 +56,3 @@ function updateDisplay() {
         process.stdout.cursorTo(0);
     }
 }
-
-
-
-// ==================================================================
-// Sample visual
-// ==================================================================
-let visual_str = `\
-                                                                                
-                                  Audio Trimmer                                 
-                                                                                
-------------------------------------------      ------------------------------- 
-| Keybind | Action                       |      |      Current selection      | 
-|---------|------------------------------|      ------------------------------- 
-| <Space> | Pause/Play selection         |      |  Start time  |   End time   | 
-|    ,    | Choose new start             |      | -------------|--------------| 
-|    .    | Choose new end               |      | 03:12:20.342 | 03:12:30.342 | 
-| <Enter> | Trim timeline to selection   |      |      -       |      n       | 
-|    -    | Undo timeline trim           |      ------------------------------- 
-|    [    | -100ms to start              |                                      
-|    ]    | +100ms to end                |                                      
-|    {    | +100ms to start              |                                      
-|    }    | -100ms to end                |                                      
-|  <C-[>  | Export selection             |                                      
-------------------------------------------                                      
-                                                                                
-                          <                                             >       
-                          |                                             |       
-0 a   b         c de      | f  g   h    i  jk           l      m        n      $
-| |   |         | ||      | |  |   |    |  ||           |      |        |      |
-<-------------------------===============================================------>
-03:10:12.333              03:12:20.342 -> 03:12:30.342              03:40:12.333\
-`;
