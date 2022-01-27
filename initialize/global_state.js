@@ -51,6 +51,7 @@ function keybindsRawDict(opts) {
     this.mark_start     = opts.mark_start     || "m";
     this.mark_end       = opts.mark_end       || "k";
     this.export         = opts.export         || "<S-R>";
+    this.exit           = opts.exit           || "<C-c>";
 }
 
 
@@ -80,6 +81,7 @@ function runtime() {
     this.keypress_history = new RingBuffer(10);
     this.playback = null;
     this.playback_is_from_start = false;
+    this.last_pause = null;
 }
 
 /*

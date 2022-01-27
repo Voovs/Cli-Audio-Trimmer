@@ -1,49 +1,69 @@
 const fmt  = require.main.require('./utils/mod.js');
 
-exports.menuStr = menuStr;
+exports.keybindMenuStr = keybindMenuStr;
+exports.timeMenuStr = timeMenuStr;
 exports.writeFFPlayTime = writeFFPlayTime;
 
 // Returns 80x24 string for the interface
 // Args:
 //   keybinds (Object): Dictionary of user-specified keybinds
 //   global_state (Object): Object for the current state of the program
-function menuStr() {
-    const selection = global.selection;
+function keybindMenuStr() {
     const k = global.keybinds.display_format;
 
-    const sel = {
-        start:  fmt.formatMilli(selection.start),
-        end:    fmt.formatMilli(selection.end),
-        s_mark: selection.start_mark ? selection.start_mark : "-",
-        e_mark: selection.end_mark   ? selection.end_mark   : "-",
-    };
+    const inc = fmt.leftAlignStr(global.user_opts.increment_size + "ms", 9);
 
-    const inc = global.user_opts.increment_size;
+    const trim   = k.trim_timeline;
+    const untrim = k.undo_trim;
+    const exprt  = k.export;
+    const exit   = k.exit;
+    const svexit = "  TODO   ";
+    const s_jump = k.new_start,     e_jump = k.new_end;
+    const s_mark = k.mark_start,    e_mark = k.mark_end;
+    const s_inc  = k.start_increase, e_inc = k.end_increase;
+    const s_dec  = k.start_decrease, e_dec = k.end_decrease;
+    const s_play = k.play,          e_play = k.play_end;
 
     return `\
-------------------------------------------      -------------------------------
-| Keybind | Action                       |      |      Current selection      |
-|---------|------------------------------|      -------------------------------
-|${k.play}| ${fmt.leftAlignStr("Pause/Play selection", 28)} |      |  Start time  |   End time   |
-|${k.new_start}| ${fmt.leftAlignStr("Choose new start", 28)} |      | -------------|--------------|
-|${k.new_end}| ${fmt.leftAlignStr("Choose new end", 28)} |      | ${sel.start} | ${sel.end} |
-|${k.trim_timeline}| ${fmt.leftAlignStr("Trim timeline to selection", 28)} |      |${fmt.centerStr(sel.s_mark, 14)}|${fmt.centerStr(sel.e_mark, 14)}|
-|${k.undo_trim}| ${fmt.leftAlignStr("Undo timeline trim", 28)} |      -------------------------------
-|${k.start_increase}| ${fmt.leftAlignStr(`-${inc}ms to start`, 28)} |
-|${k.start_decrease}| ${fmt.leftAlignStr(`+${inc}ms to start`, 28)} |
-|${k.end_decrease}| ${fmt.leftAlignStr(`-${inc}ms to end`, 28)} |        Play time:  Paused
-|${k.end_increase}| ${fmt.leftAlignStr(`+${inc}ms to end`, 28)} |
-|${k.export}| ${fmt.leftAlignStr("Export selection", 28)} |
-------------------------------------------                                      `
+┌General Keybinds──────────────────────╥─Selection Keybinds────────────────────┐
+│ Keybind │ Action                     ║  Start  │   End   │ Action            │
+├─────────┼────────────────────────────╫─────────┼─────────┼───────────────────┤
+│${ trim }│ Trim timeline              ║${s_jump}│${e_jump}│ Jump to mark      │
+│${untrim}│ Undo timeline trim         ║${s_mark}│${e_mark}│ Set mark          │
+│${exprt }│ Export selection           ║${s_inc }│${e_inc }│ Increase ${ inc  }│
+│${ exit }│ Exit Simmer                ║${s_dec }│${e_dec }│ Decrease ${ inc  }│
+│${svexit}│ Exit. Save current session ║${s_play}│${e_play}│ Play/Pause from   │
+└─────────┴────────────────────────────╨─────────┴─────────┴───────────────────┘
+`
 }
 
 
-function writeFFPlayTime(ffplay_line) {
-    process.stdout.cursorTo(62, 13);
+// String for the selection and play time menu
+function timeMenuStr() {
+    const sel = global.selection;
 
-    if (ffplay_line === null || typeof ffplay_line === "undefined") {
-        process.stdout.write("Paused");
-    } else {
+    const pause_time = global.runtime.last_pause
+        ? fmt.centerStr(fmt.formatMilli(global.runtime.last_pause), 14)
+        : fmt.centerStr("Paused", 14);
+    const start = fmt.centerStr(fmt.formatMilli(sel.start), 14);
+    const end   = fmt.centerStr(fmt.formatMilli(sel.end),   14);
+
+    return `\
+                ┌──────────────┬──────────────┬──────────────┐
+                │  Start Time  │  Play  Head  │   End Time   │
+                ├──────────────┼──────────────┼──────────────┤
+                │${   start   }│${pause_time }│${    end    }│
+                └──────────────┴──────────────┴──────────────┘
+`
+}
+
+
+// Write current playback time into play menu, as seen above. Directly
+// overwrites the tty display for speed
+function writeFFPlayTime(ffplay_line) {
+    process.stdout.cursorTo(33, 15);
+
+    if (typeof ffplay_line !== "undefined" && ffplay_line !== null) {
         let t = ffplay_line.toString().trim();
 
         if (t.includes("Metadata")) return;  // Not a timestamp line
@@ -51,19 +71,11 @@ function writeFFPlayTime(ffplay_line) {
         t = t.match(/^\d+\.\d{2}[^\d]/);
 
         if (t) {
-            process.stdout.write(fmt.leftAlignStr(fmt.formatSeconds(t[0]), 6));
+            const ms = global.runtime.last_pause = fmt.secondsToMilli(t[0]);
+            process.stdout.write(fmt.leftAlignStr(fmt.formatMilli(ms), 6));
         }
     }
-}
 
-
-// Format keybinds into human-friendly strings
-// Args:
-//   keybinds (object: <action_name: key>): Map of actions to their keybind
-function formattedKeybinds(keybinds) {
-    for (action in keybinds) {
-        let key = keybinds[action];
-
-        this[action] = fmt.formatDisplayKey(key, 9);
-    }
+    // Reset cursor to the bottom
+    process.stdout.cursorTo(0, 24);
 }

@@ -1,4 +1,4 @@
-# Simmer v0.0.10 - The Simple CLI Audio Trimmer
+# Simmer v0.0.11 - The Simple CLI Audio Trimmer
 
 Trim audio from the comfort of your shell. Essentially a cli-frontend to ffmpeg.
 Helpful if you often trim down audio clips
@@ -11,8 +11,10 @@ Requires `ffmpeg` and `node` somewhere in your path. No npm dependencies!
 
 ### State of Project
 
-<strong>Barely works</strong>. Currently at a very early stage of development.
-Lots of odd bugs. Wait for at least v0.1.0 before using
+<strong>Almost works</strong>. Currently at a very early stage of development.
+Most of it works, though exporting still doesn't have a dedicated screen.
+Exporting won't overwrite files and just crashes if there's a naming conflict.
+Otherwise it's usable. Wait for at least v0.1.0 for a more polished experience
 
 <!-- ❌ 🟡 ✅ -->
 
@@ -33,28 +35,28 @@ Current interface is scaled for a 24x80 terminal. Changes based on user
 preferences and selections
 
 ```
+                                 Simmer v0.0.11
 
-                                 Simmer v0.0.10
+┌General Keybinds──────────────────────╥─Selection Keybinds────────────────────┐
+│ Keybind │ Action                     ║  Start  │   End   │ Action            │
+├─────────┼────────────────────────────╫─────────┼─────────┼───────────────────┤
+│ <Enter> │ Trim timeline              ║    j    │    e    │ Jump to mark      │
+│    -    │ Undo timeline trim         ║    m    │    k    │ Set mark          │
+│  <S-r>  │ Export selection           ║    1    │    4    │ Increase 100ms    │
+│  <C-c>  │ Exit Simmer                ║    2    │    3    │ Decrease 100ms    │
+│  TODO   │ Exit. Save current session ║ <Space> │    `    │ Play/Pause from   │
+└─────────┴────────────────────────────╨─────────┴─────────┴───────────────────┘
 
-------------------------------------------      -------------------------------
-| Keybind | Action                       |      |      Current selection      |
-|---------|------------------------------|      -------------------------------
-| <Space> | Pause/Play selection         |      |  Start time  |   End time   |
-|    ,    | Choose new start             |      | -------------|--------------|
-|    .    | Choose new end               |      | 00:00:07.580 | 00:00:10.601 |
-| <Enter> | Trim timeline to selection   |      |      -       |      n       |
-|    -    | Undo timeline trim           |      -------------------------------
-|    [    | -100ms to start              |
-|    ]    | +100ms to end                |
-|    {    | +100ms to start              |
-|    }    | -100ms to end                |
-|  <C-[>  | Export selection             |
-------------------------------------------
+                ┌──────────────┬──────────────┬──────────────┐
+                │  Start Time  │  Play  Head  │   End Time   │
+                ├──────────────┼──────────────┼──────────────┤
+                │ 00:00:06.980 │ 00:00:08.510 │ 00:00:10.766 │
+                └──────────────┴──────────────┴──────────────┘
 
                              <             >
                              │             │
 0a b          c  d     e     │ f           gh     i    j                 k    l$
 ││ │          │  │     │     │ │           ││     │    │                 │    ││
- ░░░░░░░░░░░░░░░░░░░░░░░░░░░░███████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-00:00:00.000              00:00:07.580 -> 00:00:10.601              00:00:20.040
+█░░░░░░░░░░░░░░░░░░░░░░░░░░░░███████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█
+00:00:00.000              00:00:06.980 -> 00:00:10.766              00:00:20.040
 ```

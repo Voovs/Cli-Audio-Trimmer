@@ -1,6 +1,6 @@
 const fmt  = require.main.require('./utils/mod.js');
 
-const menu = require('./menu.js');
+const menus = require('./menu.js');
 const timeline = require('./timeline.js');
 
 exports.interfaceString = interfaceString;
@@ -12,12 +12,13 @@ function interfaceString() {
     const timeline_str = timeline.timelineStr(width);
 
 
-    const title = "\n"
+    const title = ""
         + fmt.centerStr(`${global.program_name} ${global.version}`, width, false)
         + "\n\n";
 
     return title
-        + menu.menuStr(width) + "\n\n"
+        + menus.keybindMenuStr() + "\n"
+        + menus.timeMenuStr() + "\n"
         + timeline_str + "\n"
         + bottomTimeStampsStr(width);
 }

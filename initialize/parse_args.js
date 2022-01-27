@@ -39,6 +39,7 @@ function parseArgs(argv) {
             mark_start: null,
             mark_end: null,
             export: null,
+            exit: null,
         },
     };
 

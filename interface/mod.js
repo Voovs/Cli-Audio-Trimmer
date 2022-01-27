@@ -48,10 +48,10 @@ function updateDisplay() {
         process.stdout.write(str[r]);
 
         // TODO: Remove debugging edit here
-        if (r == 15 && key) {
-            process.stdout.cursorTo(50);
-            process.stdout.write(`Last key: ${key}`);
-        }
+        //if (r == 15 && key) {
+        //    process.stdout.cursorTo(50);
+        //    process.stdout.write(`Last key: ${key}`);
+        //}
         process.stdout.moveCursor(0, 1);
         process.stdout.cursorTo(0);
     }
