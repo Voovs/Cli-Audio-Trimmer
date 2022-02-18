@@ -33,6 +33,10 @@ function centerStr(str, field_width, is_left_bias = true, padding_char = " ") {
 
 
 // Returns a string with extra width being padded by the padding character
+//
+// Examples:
+//   leftAlignStr("String", 10)   === "String    "
+//   leftAlignStr("str", 10, "S") === "strSSSSSSS"
 function leftAlignStr(string, field_width, padding_char = " ") {
     string = string.trim();
     const padding = field_width - string.length;
@@ -43,6 +47,12 @@ function leftAlignStr(string, field_width, padding_char = " ") {
 }
 
 
+// Returns a multiline string. Lines are split on words, when the line gets
+// longer than the field width
+//
+// Examples:
+//   textBlock(" Text ", 12, "<", ">", "#")  === "<## Text ##>"
+//   textBlock("one two", 6, "<", ">", "#")  === "<one#>\n<two#>"
 function textBlock(
     string,
     field_width,

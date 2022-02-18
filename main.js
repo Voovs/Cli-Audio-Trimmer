@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 global.program_name = "Simmer";
-global.version = "v0.0.11";
+global.version = "v0.0.12";
 
 // Start up program ====
 const init = require('./initialize/mod.js');

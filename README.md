@@ -1,4 +1,4 @@
-# Simmer v0.0.11 - The Simple CLI Audio Trimmer
+# Simmer v0.0.12 - The Simple CLI Audio Trimmer
 
 Trim audio from the comfort of your shell. Essentially a cli-frontend to ffmpeg.
 Helpful if you often trim down audio clips
@@ -35,7 +35,7 @@ Current interface is scaled for a 24x80 terminal. Changes based on user
 preferences and selections
 
 ```
-                                 Simmer v0.0.11
+                                 Simmer v0.0.12
 
 ┌General Keybinds──────────────────────╥─Selection Keybinds────────────────────┐
 │ Keybind │ Action                     ║  Start  │   End   │ Action            │
