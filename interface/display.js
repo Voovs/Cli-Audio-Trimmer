@@ -13,7 +13,8 @@ function interfaceString() {
 
 
     const title = ""
-        + fmt.centerStr(`${global.program_name} ${global.version}`, width, false)
+        + fmt.centerStr(
+            `${global.program_name} ${global.version}`, width, " ", false)
         + "\n\n";
 
     return title

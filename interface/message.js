@@ -4,8 +4,8 @@ exports.drawError = drawError;
 
 function drawError(msg) {
     const error_str = `
-┌─${              fmt.centerStr(" ERROR ", 76, true, "─")                    }─┐
-${fmt.textBlock(msg, 80, "│ ", " │")}
+┌─${              fmt.centerStr(" ERROR ", 76, "─", true)                    }─┐
+${            fmt.textBlock(msg, 80, "│ ", " │", " ", false)                   }
 │                                                                              │
 │ ${          fmt.centerStr("Press any key to continue", 76)                 } │
 └──────────────────────────────────────────────────────────────────────────────┘

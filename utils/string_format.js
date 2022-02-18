@@ -1,6 +1,12 @@
+// A large batch of string formatters, making up for a lack of printf()
 exports.centerStr = centerStr;
-exports.leftAlignStr = leftAlignStr;
+exports.alignStrLeft = alignStrLeft;
+exports.alignStrRight = alignStrRight;
+exports.truncateStrRight = truncateStrRight;
+exports.truncateStrLeft = truncateStrLeft;
+exports.fitString = fitString;
 exports.textBlock = textBlock;
+exports.revStr = revStr;
 
 // Center text in a string with given width. Pad both sides with spaces
 //
@@ -11,9 +17,11 @@ exports.textBlock = textBlock;
 //
 // Examples:
 //     centerStr("!", 3) === " ! "
-//     centerStr("Simmer", 21, true)  === "       Simmer        "
-//     centerStr("Simmer", 21, false) === "        Simmer       "
-function centerStr(str, field_width, is_left_bias = true, padding_char = " ") {
+//     centerStr("Simmer", 21, " ", true)  === "       Simmer        "
+//     centerStr("Simmer", 21, " ", false) === "        Simmer       "
+//     centerStr("Simmer", 21, "-", false) === "--------Simmer-------"
+//     centerStr(" Simmer ", 21, "-", false)==="------- Simmer ------"
+function centerStr(str, field_width, padding_char = " ", is_left_bias = true) {
     if (str.length >= field_width)
         return str;
 
@@ -35,30 +43,103 @@ function centerStr(str, field_width, is_left_bias = true, padding_char = " ") {
 // Returns a string with extra width being padded by the padding character
 //
 // Examples:
-//   leftAlignStr("String", 10)   === "String    "
-//   leftAlignStr("str", 10, "S") === "strSSSSSSS"
-function leftAlignStr(string, field_width, padding_char = " ") {
-    string = string.trim();
-    const padding = field_width - string.length;
+//   alignStrLeft("String", 10)   === "String    "
+//   alignStrLeft("str", 10, "S") === "strSSSSSSS"
+function alignStrLeft(string, field_width, padding_char = " ") {
+    const padding_len = field_width - string.length;
 
-    if (padding <= 0)
+    if (padding_len <= 0)
         return string
-    return string + padding_char.repeat(padding)
+    return string + padding_char.repeat(padding_len)
+}
+
+// Returns a string with extra width being padded by padding_char on the left
+//
+// Examples:
+//   alignStrRight("String", 10)   === "    String'
+//   alignStrRight(" str", 10, "S") === "SSSSSS str"
+function alignStrRight(string, field_width, padding_char = " ") {
+    const padding_len = field_width - string.length;
+
+    if (padding_len <= 0)
+        return string
+    return padding_char.repeat(padding_len) + string
+}
+
+
+// Truncates the end of a string to fit into the field_width
+//
+// Examples:
+//   truncateStrRight("STRING", 7) === "STRING"
+//   truncateStrRight("STRING", 6) === "STRING"
+//   truncateStrRight("STRING", 5) === "ST..."
+//   truncateStrLeft("STRING", 5)  === "...NG"
+//   truncateStrRight("STRING", 4) === "S..."
+//   truncateStrLeft("STRING", 4)  === "...G"
+//   truncateStrRight("STRING", 3) === "..."
+//   truncateStrRight("STRING", 1) === "..."
+function truncateStrRight(string, field_width, truncation_str = "...") {
+    if (string.length <= field_width)
+        return string
+
+    const len = Math.max(0, field_width - truncation_str.length);
+
+    return string.slice(0, len) + truncation_str
+}
+
+function truncateStrLeft(string, field_width, truncation_str = "...") {
+    return revStr(truncateStrRight(revStr(word), field_width, truncation_str))
+}
+
+
+// Fit a string into a given field width. Will pad or truncate. Returned string
+// is guarenteed to have length field_width. Arguments must satisfy:
+// truncation_str.length <= field_width
+//
+// Examples:
+//   fitString("Simmer ", 9, "#") === "Simmer ##"
+//   fitString("Simmer", 9) === "Simmer   "
+//   fitString("Simmer", 7) === "Simmer "
+//   fitString("Simmer", 6) === "Simmer"
+//   fitString("Simmer", 5) === "Si..."
+//   fitString("Simmer", 3) === "..."
+function fitString(
+    string,
+    field_width,
+    padding_char = " ",
+    truncation_str = "...",
+    is_right_padding = true,
+    is_right_truncate = true)
+{
+    if (string.length === field_width)
+        return string
+    else if (string.length < field_width)
+        return is_right_padding
+            ? alignStrLeft(string, field_width, padding_char)
+            : alignStrRight(string, field_width, padding_char)
+    else
+        return is_right_truncate
+            ? truncateStrRight(string, field_width, truncation_str)
+            :  truncateStrLeft(string, field_width, truncation_str)
 }
 
 
 // Returns a multiline string. Lines are split on words, when the line gets
-// longer than the field width
+// longer than the field width. Similar to vim's {Visual}gq
 //
 // Examples:
 //   textBlock(" Text ", 12, "<", ">", "#")  === "<## Text ##>"
 //   textBlock("one two", 6, "<", ">", "#")  === "<one#>\n<two#>"
+//   textBlock("one two three four", 4) === "one\ntwo\nt...\nfour"
+//   textBlock("one two three four", 4, "", "", " ", false)
+//      === "one\ntwo\n...e\nfour"
 function textBlock(
     string,
     field_width,
     left_char = "",
     right_char = "",
-    padding_char = " ")
+    padding_char = " ",
+    is_right_trim = true)
 {
     const words = string.split(" ");
 
@@ -75,15 +156,35 @@ function textBlock(
             line_len = word.length + " ";
             lines.push(word);
         } else {
-            lines.push(word);
+            let word_fit = is_right_trim
+                ? truncateStrRight(word, max_line_len, "...")
+                : truncateStrLeft(word, max_line_len, "...");
+
+            line_len = 0;
+            lines.push(word_fit);
+            lines.push("");
         }
     }
 
     for (let i = 0; i < lines.length; i++) {
+        if (lines[i] === "") {
+            lines.splice(i, 1);
+        } else {
         lines[i] = left_char
-            + leftAlignStr(lines[i], max_line_len, padding_char)
+            + alignStrLeft(lines[i], max_line_len, padding_char)
             + right_char;
+        }
     }
 
     return lines.join("\n")
+}
+
+
+// Reverses the character order of a string
+//
+// Examples:
+//   rev("string") === "gnirts"
+//   rev("two ") === " owt"
+function revStr(string) {
+    return string.split("").reverse().join("")
 }

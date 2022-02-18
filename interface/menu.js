@@ -11,7 +11,7 @@ exports.writeFFPlayTime = writeFFPlayTime;
 function keybindMenuStr() {
     const k = global.keybinds.display_format;
 
-    const inc = fmt.leftAlignStr(global.user_opts.increment_size + "ms", 9);
+    const inc = fmt.alignStrLeft(global.user_opts.increment_size + "ms", 9);
 
     const trim   = k.trim_timeline;
     const untrim = k.undo_trim;
@@ -72,7 +72,7 @@ function writeFFPlayTime(ffplay_line) {
 
         if (t) {
             const ms = global.runtime.last_pause = fmt.secondsToMilli(t[0]);
-            process.stdout.write(fmt.leftAlignStr(fmt.formatMilli(ms), 6));
+            process.stdout.write(fmt.alignStrLeft(fmt.formatMilli(ms), 6));
         }
     }
 
