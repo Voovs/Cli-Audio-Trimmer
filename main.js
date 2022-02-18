@@ -13,6 +13,8 @@ const backend = require('./backend/mod.js');
 const fmt     = require('./utils/key_format.js');
 
 process.stdin.on('keypress', function (char, key) {
+    if (!global.runtime.display_mode.editor) return;
+
     global.runtime.keypress_history.force_push_front({
         code: fmt.keyStrID(key),
         display: fmt.formatDisplayKey(key, 9),
@@ -86,7 +88,8 @@ process.stdin.on('keypress', function (char, key) {
             break;
     }
 
-    global.events.emit('redraw_interface');
+    if (global.runtime.display_mode.editor)
+        global.events.emit('redraw_interface');
 });
 
 

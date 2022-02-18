@@ -5,6 +5,7 @@ const interface     = require.main.require('./interface/mod.js');
 
 const global_state = require('./global_state.js');
 const parse_args   = require('./parse_args.js');
+const help         = require('./help.js');
 
 exports.setGlobalOptions = setGlobalOptions;
 exports.registerEvents = registerEvents;
@@ -35,10 +36,10 @@ function registerEvents() {
 
 
 function startInterface() {
-    const input = process.stdin;
-    const output = process.stdout;
-
-    readline.createInterface({input, output});
+    global.readline = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
 
     interface.drawInitial();
 }

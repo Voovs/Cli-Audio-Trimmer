@@ -2,11 +2,15 @@ const fmt = require.main.require('./utils/mod.js');
 
 const display = require('./display.js');
 const menus   = require('./menu.js');
+const prompts = require('./prompt.js');
+const msg     = require('./message.js');
 
 exports.drawInitial = drawInitial;
 exports.eraseInterface = eraseInterface;
 exports.updateDisplay = updateDisplay;
 exports.writeFFPlayTime = menus.writeFFPlayTime;
+exports.savePrompt = prompts.savePrompt;
+exports.drawError = msg.drawError;
 
 
 // Initialize interface without overwriting scrollback. Only works on flashier
@@ -38,7 +42,6 @@ function updateDisplay() {
     if (key && key.name === "return")
         process.stdout.moveCursor(0, -1);
 
-    //process.stdout.moveCursor(0, -24);
     process.stdout.cursorTo(0, 0);
 
     let str = display.interfaceString().split(/\r?\n/);
@@ -47,11 +50,6 @@ function updateDisplay() {
         process.stdout.clearLine();
         process.stdout.write(str[r]);
 
-        // TODO: Remove debugging edit here
-        //if (r == 15 && key) {
-        //    process.stdout.cursorTo(50);
-        //    process.stdout.write(`Last key: ${key}`);
-        //}
         process.stdout.moveCursor(0, 1);
         process.stdout.cursorTo(0);
     }

@@ -33,7 +33,7 @@ function getAudioLength(file) {
 }
 
 
-function saveTrimmedFile() {
+function saveTrimmedFile(path) {
     const command = "ffmpeg";
     const args = [
         "-i", global.user_opts.input_name,
@@ -42,7 +42,7 @@ function saveTrimmedFile() {
         "-c", "copy",
         "-hide_banner",
         "-loglevel", "error",
-        global.user_opts.output_name,
+        path,
     ];
 
     sh.spawnSync(command, args);

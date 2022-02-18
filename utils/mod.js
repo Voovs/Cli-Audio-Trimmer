@@ -14,5 +14,6 @@ exports.displayKey       = keys.displayKey;
 exports.unformatKey      = keys.unformatKey;
 exports.keyStrID         = keys.keyStrID;
 
-exports.centerStr = strs.centerStr;
+exports.centerStr    = strs.centerStr;
 exports.leftAlignStr = strs.leftAlignStr;
+exports.textBlock    = strs.textBlock;

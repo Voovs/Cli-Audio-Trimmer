@@ -11,7 +11,7 @@ exports.runtime   = runtime;
 
 function userOpts(opts) {
     this.input_name     = opts.input_name;
-    this.output_name    = opts.output_name    || "./trimmed.mp3";
+    this.output_name    = opts.output_name    || "trimmed.mp3";
     this.increment_size = opts.increment_size || 100;
     this.window_width   = opts.window_width   || 80;
     this.window_height  = 24;
@@ -79,9 +79,14 @@ function timeline(opts, audio_length) {
 
 function runtime() {
     this.keypress_history = new RingBuffer(10);
+    // FFPLAY spawned process
     this.playback = null;
     this.playback_is_from_start = false;
     this.last_pause = null;
+    this.display_mode = {
+        editor: true,
+        save_prompt: false,
+    };
 }
 
 /*
