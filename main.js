@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 global.program_name = "Simmer";
-global.version = "v0.0.12";
+global.version = "v0.1.0";
 
 // Start up program ====
 const init = require('./initialize/mod.js');
@@ -13,7 +13,11 @@ const backend = require('./backend/mod.js');
 const fmt     = require('./utils/key_format.js');
 
 process.stdin.on('keypress', function (char, key) {
-    if (!global.runtime.display_mode.editor) return;
+    if (global.runtime.display_mode.message) {
+        global.runtime.display_mode.message = false;
+        global.runtime.display_mode.editor = true;
+        return;
+    } else if (!global.runtime.display_mode.editor) return;
 
     global.runtime.keypress_history.force_push_front({
         code: fmt.keyStrID(key),
@@ -77,6 +81,7 @@ process.stdin.on('keypress', function (char, key) {
             backend.exportSelection();
             break;
 
+        // Exit ====
         case k.exit:
             process.kill(process.pid, 'SIGINT');
             break;

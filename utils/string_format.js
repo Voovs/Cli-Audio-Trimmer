@@ -7,6 +7,7 @@ exports.truncateStrLeft = truncateStrLeft;
 exports.fitString = fitString;
 exports.textBlock = textBlock;
 exports.revStr = revStr;
+exports.tildeHome = tildeHome;
 
 // Center text in a string with given width. Pad both sides with spaces
 //
@@ -88,7 +89,8 @@ function truncateStrRight(string, field_width, truncation_str = "...") {
 }
 
 function truncateStrLeft(string, field_width, truncation_str = "...") {
-    return revStr(truncateStrRight(revStr(word), field_width, truncation_str))
+    return revStr(
+        truncateStrRight(revStr(word), field_width, revStr(truncation_str)))
 }
 
 
@@ -141,29 +143,35 @@ function textBlock(
     padding_char = " ",
     is_right_trim = true)
 {
-    const words = string.split(" ");
-
+    const forced_lines = string.split("\n");  // Input specified
     let lines = [""];
-    let line_len = 0
     const max_line_len = field_width - left_char.length - right_char.length;
 
-    for (word of words) {
-        line_len += word.length + 1;
+    for (forced_line of forced_lines) {
+        const words = forced_line.split(" ");
+        let line_len = 0
 
-        if (line_len <= max_line_len) {
-            lines[lines.length - 1] += word + " ";
-        } else if (line_len > max_line_len && word.length <= max_line_len) {
-            line_len = word.length + " ";
-            lines.push(word);
-        } else {
-            let word_fit = is_right_trim
-                ? truncateStrRight(word, max_line_len, "...")
-                : truncateStrLeft(word, max_line_len, "...");
+        for (word of words) {
+            line_len += word.length + 1;
+            //console.log(`Len: ${line_len}, Word: ${word}`);
 
-            line_len = 0;
-            lines.push(word_fit);
-            lines.push("");
+            if (line_len <= max_line_len) {
+                lines[lines.length - 1] += word + " ";
+            } else if (line_len > max_line_len && word.length <= max_line_len) {
+                line_len = word.length + 1;
+                lines.push(word + " ");
+            } else {
+                let word_fit = is_right_trim
+                    ? truncateStrRight(word, max_line_len, "...")
+                    : truncateStrLeft(word, max_line_len, "...");
+
+                line_len = 0;
+                lines.push(word_fit);
+                lines.push("");
+            }
         }
+
+        lines.push("");
     }
 
     for (let i = 0; i < lines.length; i++) {
@@ -187,4 +195,18 @@ function textBlock(
 //   rev("two ") === " owt"
 function revStr(string) {
     return string.split("").reverse().join("")
+}
+
+
+// Replaces the home path at the beginning of a path with ~
+//
+// Examples:
+//   tildeHome("/Users/emiliko/Desktop/mpv_anki_parts/main.js")
+//                      === "~/Desktop/mpv_anki_parts/main.js"
+//   tildeHome("/home/kate/.config/mpv")
+//                  === "~/.config/mpv"
+function tildeHome(string, home = process.env.HOME) {
+    const home_regex = new RegExp("([ ^])" + home);
+
+    return string.trim().replace(home_regex, "$1~")
 }

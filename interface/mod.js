@@ -10,7 +10,7 @@ exports.eraseInterface = eraseInterface;
 exports.updateDisplay = updateDisplay;
 exports.writeFFPlayTime = menus.writeFFPlayTime;
 exports.savePrompt = prompts.savePrompt;
-exports.drawError = msg.drawError;
+exports.drawMsg = msg.drawMsg;
 
 
 // Initialize interface without overwriting scrollback. Only works on flashier

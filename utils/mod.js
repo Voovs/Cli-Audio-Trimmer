@@ -22,3 +22,4 @@ exports.truncateStrLeft  = strs.truncateStrLeft;
 exports.fitString        = strs.fitString;
 exports.textBlock        = strs.textBlock;
 exports.revStr           = strs.revStr;
+exports.tildeHome        = strs.tildeHome;

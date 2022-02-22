@@ -3,7 +3,8 @@ const interface = require.main.require('./interface/mod.js');
 
 exports.getAudioLength = getAudioLength;
 exports.togglePlay = togglePlay;
-exports.exportSelection = saveTrimmedFile;
+exports.exportSelection = exportSelection;
+exports.stopPlayback = stopPlayback;
 
 // Returns the length of the media file in milliseconds
 function getAudioLength(file) {
@@ -33,7 +34,8 @@ function getAudioLength(file) {
 }
 
 
-function saveTrimmedFile(path) {
+// Saves selection into given path
+function exportSelection(path) {
     const command = "ffmpeg";
     const args = [
         "-i", global.user_opts.input_name,
@@ -45,29 +47,31 @@ function saveTrimmedFile(path) {
         path,
     ];
 
-    sh.spawnSync(command, args);
-    //const stderr = out.stderr.toString();
+    const ffmpeg = sh.spawnSync(command, args);
+
+    if (ffmpeg.status === 0) {
+        interface.drawMsg(`Trimmed audio at: ${path}`, "Saved audio");
+    } else {
+        interface.drawMsg(
+            `Exit code: ${ffmpeg.status}\nError message:\n${ffmpeg.stderr}`,
+            `FFMPEG failed to save the audio`);
+    }
 }
 
 
+// Toggles between playing the audio. Playing is done from the start of
+// selection, or a user-specified amount before the end of the selection
 function togglePlay(is_from_start) {
-    const playback_type = global.runtime.playback_is_from_start;
-
-    const is_playing = (global.runtime.playback !== null && global.runtime.playback.exitCode === null);
-    let is_pause = false;
+    const is_playing = (global.runtime.playback !== null
+                        && global.runtime.playback.exitCode === null);
 
     if (is_playing) {
-        global.runtime.playback.kill();
-        global.runtime.playback = null;
-        is_pause = global.runtime.playback_is_from_start === is_from_start;
-    }
-
-    if (!is_pause) {
-        global.runtime.playback_is_from_start = is_from_start;
-
+        stopPlayback();
+    } else {
         const to = global.selection.end;
 
-        const from = is_from_start ? global.selection.start
+        const from = is_from_start
+                ? global.selection.start
                 : Math.max(to - global.user_opts.play_end_time, 0);
 
         playAudio(from, to);
@@ -75,6 +79,19 @@ function togglePlay(is_from_start) {
 }
 
 
+// Kills the ffplay process
+function stopPlayback() {
+    const is_playing = (global.runtime.playback !== null
+                       && global.runtime.playback.exitCode === null);
+
+    if (is_playing) {
+        global.runtime.playback.kill();
+        global.runtime.playback = null;
+    }
+}
+
+
+// Play back audio in given range
 function playAudio(from, to) {
     const duration = to - from;
 
@@ -96,5 +113,8 @@ function playAudio(from, to) {
         interface.writeFFPlayTime(data);
     });
 
-    global.runtime.playback.on('close', interface.writeFFPlayTime);
+    global.runtime.playback.on('close', () => {
+        if (global.runtime.display_mode.editor)
+            interface.writeFFPlayTime();
+    });
 }

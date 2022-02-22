@@ -3,6 +3,8 @@ const fmt = require.main.require('./utils/mod.js');
 exports.savePrompt = savePrompt;
 
 
+// Prompt the user for a path to save the file into. Prefills the prompt with
+// the default path
 function savePrompt(callback) {
     process.stdout.cursorTo(0, 12);
     process.stdout.clearScreenDown();
@@ -22,5 +24,11 @@ function savePrompt(callback) {
     global.readline.prompt();
     global.readline.write(default_path);
 
-    global.readline.on('line', callback);
+    let prev_line = "";
+    global.readline.on('line', (line) => {
+        if (line !== prev_line) {
+            prev_line = line;
+            callback(line);
+        }
+    });
 }

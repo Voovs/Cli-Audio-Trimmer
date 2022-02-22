@@ -19,20 +19,22 @@ function exportSelection() {
     global.runtime.display_mode.editor = false;
     global.runtime.display_mode.save_prompt = true;
 
-    const restore_editor = () => {
-        global.runtime.display_mode.save_prompt = false;
-        global.runtime.display_mode.editor = true;
-    };
+    ffmpeg.stopPlayback();
 
     interface.savePrompt((given_path) => {
+        if (global.runtime.last_save_path === given_path) return;
+
         const fs = require('fs');
 
-        if (fs.existsSync(given_path)) {
-            interface.drawError(`This path already exists: ${given_path}`);
-            setTimeout(restore_editor, 2000);
-        } else {
+        if (global.runtime.last_save_path !== given_path
+            && fs.existsSync(given_path)) {
+            interface.drawMsg(`This path already exists: ${given_path}`,
+                                "Failed to save audio");
+        } else if (given_path !== "") {
+            global.runtime.last_save_path = given_path;
             ffmpeg.exportSelection(given_path);
-            restore_editor();
         }
+
+        global.runtime.display_mode.save_prompt = false;
     });
 }

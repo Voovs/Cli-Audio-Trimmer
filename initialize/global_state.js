@@ -83,9 +83,11 @@ function runtime() {
     this.playback = null;
     this.playback_is_from_start = false;
     this.last_pause = null;
+    this.last_save_path = "";
     this.display_mode = {
         editor: true,
         save_prompt: false,
+        message: false,
     };
 }
 
